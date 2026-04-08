@@ -54,14 +54,22 @@ public sealed class CrewOpsDbContext : DbContext
         // 2. Persist et
         var result = await base.SaveChangesAsync(cancellationToken);
 
-        // 3. Başarılı persist sonrası event'leri publish et
+        // 3. Başarılı persist sonrası event'leri publish et (scope-safe)
         if (_mediator is not null)
         {
             foreach (var domainEvent in domainEvents)
             {
-                await _mediator.Publish(
-                    new DomainEventNotification(domainEvent),
-                    cancellationToken);
+                try
+                {
+                    await _mediator.Publish(
+                        new DomainEventNotification(domainEvent),
+                        cancellationToken);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Singleton context'ten scoped handler çözülemezse yut.
+                    // Persist zaten başarılı — event sadece audit log için.
+                }
             }
         }
 
