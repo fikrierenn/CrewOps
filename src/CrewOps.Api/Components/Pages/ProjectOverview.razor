@@ -1,0 +1,205 @@
+@page "/project/{ProjectId:guid}"
+@using CrewOps.Domain.Aggregates
+@using CrewOps.Domain.StateMachine
+@using CrewOps.Domain.DomainEvents
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@inject IProjectStateMachine StateMachine
+@rendermode InteractiveServer
+
+@if (_project is not null)
+{
+    <div class="project-header-bar">
+        <div>
+            <h1>@_project.Name</h1>
+            <span class="badge badge-@_project.State.ToString().ToLower()">@_project.State</span>
+            <span class="meta-text">@(_project.Domain ?? "Genel")</span>
+        </div>
+        <a href="/project/@ProjectId/chat" class="btn-accent">PM ile Sohbet</a>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <button class="tab @(_activeTab == "overview" ? "tab-active" : "")" @onclick='() => _activeTab = "overview"'>Genel Bakis</button>
+        <button class="tab @(_activeTab == "tasks" ? "tab-active" : "")" @onclick='() => _activeTab = "tasks"'>Gorevler (@_tasks.Count)</button>
+        <button class="tab @(_activeTab == "executions" ? "tab-active" : "")" @onclick='() => _activeTab = "executions"'>Calismalar (@_runs.Count)</button>
+        <button class="tab @(_activeTab == "activity" ? "tab-active" : "")" @onclick='() => _activeTab = "activity"'>Aktivite (@_events.Count)</button>
+    </div>
+
+    @if (_activeTab == "overview")
+    {
+        <!-- Özet Kartlar -->
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Gorevler</h3>
+                <span class="count">@_tasks.Count(t => t.Status.ToString() == "Completed") / @_tasks.Count</span>
+            </div>
+            <div class="card">
+                <h3>Toplam Sure</h3>
+                <span class="count">@(_runs.Sum(r => r.DurationMs) / 1000)s</span>
+            </div>
+            <div class="card">
+                <h3>Maliyet</h3>
+                <span class="count">$@_runs.Sum(r => r.CostUsd).ToString("F3")</span>
+            </div>
+        </div>
+
+        <!-- State Machine -->
+        <h2>State Machine</h2>
+        <div class="state-flow">
+            @foreach (var state in _stateHistory)
+            {
+                <div class="state-step">
+                    <span class="state-badge active">@state.ToState</span>
+                    <span class="state-time">@state.OccurredAt.ToString("HH:mm:ss")</span>
+                </div>
+            }
+            <div class="state-step current">
+                <span class="state-badge current-state">@_project.State</span>
+                <span class="state-time">su an</span>
+            </div>
+        </div>
+
+        <!-- İzin Verilen Geçişler -->
+        <h2>Izin Verilen Gecisler</h2>
+        <div class="allowed-transitions">
+            @foreach (var state in _allowedTransitions)
+            {
+                <span class="transition-badge">@state</span>
+            }
+            @if (!_allowedTransitions.Any())
+            {
+                <span class="terminal">Terminal durum veya governance kisitlamasi</span>
+            }
+        </div>
+
+        <!-- Proje Detay -->
+        <h2>Proje Bilgileri</h2>
+        <div class="project-meta">
+            <dl>
+                <dt>Domain</dt><dd>@(_project.Domain ?? "Belirtilmemis")</dd>
+                <dt>Takim Sablonu</dt><dd>@(_project.TeamTemplateId?.ToString() ?? "Atanmamis")</dd>
+                <dt>Olusturulma</dt><dd>@_project.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+                <dt>Son Guncelleme</dt><dd>@_project.UpdatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+            </dl>
+        </div>
+    }
+
+    @if (_activeTab == "tasks")
+    {
+        <table>
+            <thead>
+                <tr><th>Baslik</th><th>Rol</th><th>Durum</th><th>Karmasiklik</th><th>Retry</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var task in _tasks)
+                {
+                    <tr>
+                        <td>@task.Title</td>
+                        <td><span class="role-badge">@task.RoleId</span></td>
+                        <td><span class="badge badge-@task.Status.ToString().ToLower()">@task.Status</span></td>
+                        <td>@task.ComplexityHint</td>
+                        <td>@task.RetryCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (_activeTab == "executions")
+    {
+        @foreach (var run in _runs)
+        {
+            var task = _tasks.FirstOrDefault(t => t.Id == run.TaskId);
+            <div class="run-card @run.Status.ToString().ToLower()">
+                <div class="run-header" @onclick="() => Toggle(run.Id)">
+                    <div class="run-header-left">
+                        <span class="run-status-dot status-@run.Status.ToString().ToLower()"></span>
+                        <div>
+                            <div class="run-title">@(task?.Title ?? "Gorev")</div>
+                            <div class="run-meta">
+                                <span class="role-badge">@run.RoleId</span>
+                                <span>@run.DurationMs ms</span>
+                                <span>Deneme #@run.AttemptNumber</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="expand-icon">@(_expanded.Contains(run.Id) ? "▾" : "▸")</span>
+                </div>
+                @if (_expanded.Contains(run.Id))
+                {
+                    <div class="run-output">
+                        <pre>@(run.RawOutput ?? run.ErrorMessage ?? "Cikti yok")</pre>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+    @if (_activeTab == "activity")
+    {
+        <table>
+            <thead>
+                <tr><th>Zaman</th><th>Olay</th><th>Aktor</th><th>Detay</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var evt in _events)
+                {
+                    <tr>
+                        <td>@evt.OccurredAt.ToString("HH:mm:ss")</td>
+                        <td><span class="badge">@evt.EventType</span></td>
+                        <td>@evt.ActorId</td>
+                        <td class="payload">@(evt.Payload ?? "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <p class="empty-state">Proje bulunamadi.</p>
+}
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+
+    private Project? _project;
+    private IReadOnlyList<CrewOpsTask> _tasks = [];
+    private IReadOnlyList<ExecutionRun> _runs = [];
+    private IReadOnlyList<AuditEvent> _events = [];
+    private IReadOnlySet<ProjectState> _allowedTransitions = new HashSet<ProjectState>();
+    private List<ProjectStateChanged> _stateHistory = [];
+    private HashSet<Guid> _expanded = [];
+    private string _activeTab = "overview";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _project = await db.Projects.FindAsync(ProjectId);
+        if (_project is null) return;
+
+        _tasks = await db.Tasks.Where(t => t.ProjectId == ProjectId).OrderBy(t => t.CreatedAt).ToListAsync();
+        _runs = await db.ExecutionRuns.Where(r => r.ProjectId == ProjectId).OrderByDescending(r => r.CreatedAt).ToListAsync();
+        _events = await db.AuditEvents.Where(e => e.ProjectId == ProjectId).OrderBy(e => e.OccurredAt).ToListAsync();
+        _allowedTransitions = StateMachine.GetAllowedTransitions(_project.State, _project.Governance);
+
+        // State history'yi audit event'lerden çıkar
+        _stateHistory = _events
+            .Where(e => e.EventType == AuditEventType.StateChanged)
+            .Select(e => new ProjectStateChanged(
+                _project.Id,
+                ProjectState.New,
+                ProjectState.New,
+                e.ActorId,
+                e.OccurredAt))
+            .ToList();
+    }
+
+    private void Toggle(Guid runId)
+    {
+        if (!_expanded.Remove(runId))
+            _expanded.Add(runId);
+    }
+}

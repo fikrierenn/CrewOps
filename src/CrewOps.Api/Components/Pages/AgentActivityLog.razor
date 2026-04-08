@@ -1,0 +1,81 @@
+@page "/project/{ProjectId:guid}/activity"
+@using CrewOps.Domain.Entities
+@using CrewOps.Domain.ValueObjects
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@rendermode InteractiveServer
+
+<h1>Agent Aktivite Logu</h1>
+
+<div class="filters">
+    <label>
+        Olay Tipi:
+        <select @bind="_filterType">
+            <option value="">Tümü</option>
+            @foreach (var type in Enum.GetValues<AuditEventType>())
+            {
+                <option value="@type">@type</option>
+            }
+        </select>
+    </label>
+    <button @onclick="LoadEvents">Filtrele</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Zaman</th>
+            <th>Olay Tipi</th>
+            <th>Aktör</th>
+            <th>Detay</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var evt in _events)
+        {
+            <tr>
+                <td>@evt.OccurredAt.ToString("dd.MM HH:mm:ss")</td>
+                <td><span class="badge">@evt.EventType</span></td>
+                <td>@evt.ActorId</td>
+                <td class="payload">@(evt.Payload ?? "—")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!_events.Any())
+{
+    <p class="empty-state">Henüz aktivite kaydı bulunmuyor.</p>
+}
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    private IReadOnlyList<AuditEvent> _events = [];
+    private string _filterType = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEvents();
+    }
+
+    private async Task LoadEvents()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (string.IsNullOrEmpty(_filterType))
+        {
+            _events = await db.AuditEvents
+                .Where(e => e.ProjectId == ProjectId)
+                .OrderByDescending(e => e.OccurredAt)
+                .ToListAsync();
+        }
+        else if (Enum.TryParse<AuditEventType>(_filterType, out var eventType))
+        {
+            _events = await db.AuditEvents
+                .Where(e => e.ProjectId == ProjectId && e.EventType == eventType)
+                .OrderByDescending(e => e.OccurredAt)
+                .ToListAsync();
+        }
+    }
+}

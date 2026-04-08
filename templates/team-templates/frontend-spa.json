@@ -1,0 +1,21 @@
+{
+  "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+  "name": "Frontend SPA",
+  "domain": "software",
+  "description": "Frontend odaklı SPA geliştirme takımı. Staging ve production gate'leri yok.",
+  "defaultOutputType": "codePatch",
+  "governance": {
+    "requireAgreement": true,
+    "requirePlanApproval": true,
+    "requireHumanReview": true,
+    "hasQaPhase": true,
+    "hasStagingGate": false,
+    "hasProductionGate": false
+  },
+  "roles": [
+    { "roleId": "pm", "displayName": "Product Manager", "modelTier": "critical", "isRequired": true },
+    { "roleId": "architect", "displayName": "Architect", "modelTier": "critical", "isRequired": false },
+    { "roleId": "frontend", "displayName": "Frontend Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "qa", "displayName": "QA Engineer", "modelTier": "complex", "isRequired": true }
+  ]
+}

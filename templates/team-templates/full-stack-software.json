@@ -1,0 +1,24 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Full-Stack Software",
+  "domain": "software",
+  "description": "Tam kapsamlı yazılım geliştirme takımı. Frontend, backend, veritabanı, QA ve DevOps dahil.",
+  "defaultOutputType": "codePatch",
+  "governance": {
+    "requireAgreement": true,
+    "requirePlanApproval": true,
+    "requireHumanReview": true,
+    "hasQaPhase": true,
+    "hasStagingGate": true,
+    "hasProductionGate": true
+  },
+  "roles": [
+    { "roleId": "pm", "displayName": "Product Manager", "modelTier": "critical", "isRequired": true },
+    { "roleId": "architect", "displayName": "Architect", "modelTier": "critical", "isRequired": true },
+    { "roleId": "backend", "displayName": "Backend Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "frontend", "displayName": "Frontend Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "sql", "displayName": "SQL Engineer", "modelTier": "complex", "isRequired": false },
+    { "roleId": "qa", "displayName": "QA Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "devops", "displayName": "DevOps Engineer", "modelTier": "complex", "isRequired": false }
+  ]
+}

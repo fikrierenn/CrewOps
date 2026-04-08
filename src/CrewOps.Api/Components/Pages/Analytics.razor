@@ -1,0 +1,108 @@
+@page "/analytics"
+@using CrewOps.Domain.Aggregates
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@rendermode InteractiveServer
+
+<h1>Analytics</h1>
+
+<div class="summary-cards">
+    <div class="card">
+        <h3>Tamamlanan Projeler</h3>
+        <span class="count">@_completedProjects</span>
+    </div>
+    <div class="card">
+        <h3>Başarısız Projeler</h3>
+        <span class="count">@_failedProjects</span>
+    </div>
+    <div class="card">
+        <h3>Toplam Yürütme</h3>
+        <span class="count">@_totalRuns</span>
+    </div>
+    <div class="card">
+        <h3>Toplam Maliyet</h3>
+        <span class="count">$@_totalCost.ToString("F2")</span>
+    </div>
+</div>
+
+<h2>Model Kullanım Dağılımı</h2>
+<table>
+    <thead>
+        <tr><th>Model Tier</th><th>Yürütme Sayısı</th><th>Toplam Token</th><th>Maliyet ($)</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var group in _modelUsage)
+        {
+            <tr>
+                <td>@group.Key</td>
+                <td>@group.Value.Count</td>
+                <td>@group.Value.TotalTokens</td>
+                <td>@group.Value.TotalCost.ToString("F4")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Rol Kullanım Sıklığı</h2>
+<table>
+    <thead>
+        <tr><th>Rol</th><th>Yürütme Sayısı</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var role in _roleUsage.OrderByDescending(r => r.Value))
+        {
+            <tr>
+                <td><span class="role-badge">@role.Key</span></td>
+                <td>@role.Value</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private int _completedProjects;
+    private int _failedProjects;
+    private int _totalRuns;
+    private decimal _totalCost;
+    private Dictionary<string, ModelUsageInfo> _modelUsage = new();
+    private Dictionary<string, int> _roleUsage = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        var projects = await db.Projects.ToListAsync();
+        _completedProjects = projects.Count(p => p.State == ProjectState.Completed);
+        _failedProjects = projects.Count(p => p.State == ProjectState.Failed);
+
+        var allRuns = await db.ExecutionRuns.ToListAsync();
+
+        _totalRuns = allRuns.Count;
+        _totalCost = allRuns.Sum(r => r.CostUsd);
+
+        // Model kullanım dağılımı
+        _modelUsage = allRuns
+            .GroupBy(r => r.ModelTier.ToString())
+            .ToDictionary(
+                g => g.Key,
+                g => new ModelUsageInfo
+                {
+                    Count = g.Count(),
+                    TotalTokens = g.Sum(r => r.InputTokens + r.OutputTokens),
+                    TotalCost = g.Sum(r => r.CostUsd)
+                });
+
+        // Rol kullanım sıklığı
+        _roleUsage = allRuns
+            .GroupBy(r => r.RoleId)
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
+
+    private sealed class ModelUsageInfo
+    {
+        public int Count { get; set; }
+        public int TotalTokens { get; set; }
+        public decimal TotalCost { get; set; }
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+  "name": "SEO Optimization",
+  "domain": "seo",
+  "description": "SEO audit, rakip analizi ve teknik SEO iyile\u015ftirme tak\u0131m\u0131.",
+  "defaultOutputType": "analysis",
+  "governance": {
+    "requireAgreement": true,
+    "requirePlanApproval": true,
+    "requireHumanReview": true,
+    "hasQaPhase": false,
+    "hasStagingGate": false,
+    "hasProductionGate": false
+  },
+  "roles": [
+    { "roleId": "pm", "displayName": "Product Manager", "modelTier": "critical", "isRequired": true },
+    { "roleId": "seo-analyst", "displayName": "SEO Analisti", "modelTier": "complex", "isRequired": true },
+    { "roleId": "content-writer", "displayName": "\u0130\u00e7erik Yazar\u0131", "modelTier": "complex", "isRequired": true },
+    { "roleId": "technical-seo", "displayName": "Teknik SEO Uzman\u0131", "modelTier": "complex", "isRequired": false }
+  ]
+}

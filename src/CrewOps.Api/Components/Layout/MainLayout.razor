@@ -1,0 +1,132 @@
+@inherits LayoutComponentBase
+@using CrewOps.Domain.Aggregates
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+
+<div class="page">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <rect width="28" height="28" rx="8" fill="url(#g1)"/>
+                    <path d="M8 14L12 10L16 14L20 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 18L12 14L16 18L20 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                    <defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6c5ce7"/><stop offset="1" stop-color="#a29bfe"/></linearGradient></defs>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h3>CrewOps</h3>
+                <span class="subtitle">AI Orchestrator</span>
+            </div>
+        </div>
+
+        <nav class="nav-section">
+            <p class="nav-label">PM</p>
+            <ul class="nav-menu">
+                <li>
+                    <a href="/chat/new" class="nav-link">
+                        <span class="nav-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        </span>
+                        Yeni Sohbet
+                    </a>
+                </li>
+            </ul>
+
+            <p class="nav-label">Genel</p>
+            <ul class="nav-menu">
+                <li>
+                    <a href="/" class="nav-link">
+                        <span class="nav-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                        </span>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="/analytics" class="nav-link">
+                        <span class="nav-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                        </span>
+                        Analytics
+                    </a>
+                </li>
+            </ul>
+
+            @if (_projects.Any())
+            {
+                <p class="nav-label">Projeler (@_projects.Count)</p>
+                <ul class="nav-menu">
+                    @foreach (var p in _projects.Take(15))
+                    {
+                        <li class="project-item">
+                            <a href="/project/@p.Id" class="nav-link project-link">
+                                <span class="project-dot state-@p.State.ToString().ToLower()"></span>
+                                <div class="project-info">
+                                    <span class="project-name">@Truncate(p.Name, 22)</span>
+                                    @if (!string.IsNullOrEmpty(p.Domain))
+                                    {
+                                        <span class="project-domain">@p.Domain</span>
+                                    }
+                                </div>
+                            </a>
+                            <div class="project-actions">
+                                <a href="/project/@p.Id/chat" class="sub-link" title="Sohbet">💬</a>
+                                <a href="/project/@p.Id/leads" class="sub-link" title="Leads">👥</a>
+                                <button class="delete-btn" @onclick="() => DeleteProject(p.Id)" title="Sil">🗑️</button>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="status-dot"></div>
+            <span>Sistem Aktif</span>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="content-inner">
+            @Body
+        </div>
+    </main>
+</div>
+
+@code {
+    private IReadOnlyList<Project> _projects = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _projects = await db.Projects.OrderByDescending(p => p.UpdatedAt).ToListAsync();
+    }
+
+    private async Task DeleteProject(Guid projectId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var project = await db.Projects.FindAsync(projectId);
+        if (project is null) return;
+
+        // İlişkili verileri sil
+        var leads = await db.Leads.Where(l => l.ProjectId == projectId).ToListAsync();
+        var runs = await db.Set<Domain.Aggregates.ExecutionRun>().Where(r => r.ProjectId == projectId).ToListAsync();
+        var tasks = await db.Set<Domain.Aggregates.CrewOpsTask>().Where(t => t.ProjectId == projectId).ToListAsync();
+        var audits = await db.AuditEvents.Where(a => a.ProjectId == projectId).ToListAsync();
+
+        db.Leads.RemoveRange(leads);
+        db.Set<Domain.Aggregates.ExecutionRun>().RemoveRange(runs);
+        db.Set<Domain.Aggregates.CrewOpsTask>().RemoveRange(tasks);
+        db.AuditEvents.RemoveRange(audits);
+        db.Projects.Remove(project);
+
+        await db.SaveChangesAsync();
+        _projects = await db.Projects.OrderByDescending(p => p.UpdatedAt).ToListAsync();
+        StateHasChanged();
+    }
+
+    private static string Truncate(string text, int max) =>
+        text.Length <= max ? text : text[..max] + "...";
+}

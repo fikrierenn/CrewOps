@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{NAME}}</title>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--c1:{{C1}};--c2:{{C2}};--c3:{{C3}};--font-h:'Italiana',serif;--font-b:'Raleway',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:var(--font-b);color:#222;line-height:1.7;overflow-x:hidden}
+
+/* NAV */
+.nav{position:fixed;top:0;width:100%;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;transition:.4s}
+.nav.s{background:rgba(255,255,255,.97);box-shadow:0 1px 20px rgba(0,0,0,.06)}
+.nav-logo{font-family:var(--font-h);font-size:1.6rem;color:#fff;text-decoration:none;letter-spacing:3px}
+.nav.s .nav-logo{color:#222}
+.nav-btn{padding:10px 28px;border:2px solid #fff;color:#fff;text-decoration:none;font-size:.8rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;transition:.3s}
+.nav-btn:hover{background:#fff;color:#222}
+.nav.s .nav-btn{border-color:var(--c1);color:var(--c1)}.nav.s .nav-btn:hover{background:var(--c1);color:#fff}
+
+/* HERO SPLIT */
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
+.hero-left{background:linear-gradient(160deg,var(--c1),var(--c2));display:flex;flex-direction:column;justify-content:center;padding:80px 64px;color:#fff}
+.hero-left h1{font-family:var(--font-h);font-size:clamp(2.5rem,5vw,4rem);line-height:1.15;margin-bottom:20px;opacity:0;animation:sl .7s ease .3s forwards}
+.hero-left p{font-size:1.1rem;opacity:.85;margin-bottom:24px;opacity:0;animation:sl .7s ease .5s forwards}
+.hero-left .badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);padding:10px 20px;border-radius:30px;font-size:.9rem;opacity:0;animation:sl .7s ease .7s forwards}
+.hero-left .badge .stars{color:#ffd700}
+.hero-left a.cta{display:inline-block;margin-top:28px;padding:14px 40px;background:#fff;color:var(--c1);font-weight:700;text-decoration:none;border-radius:0;letter-spacing:2px;text-transform:uppercase;font-size:.85rem;transition:.3s;opacity:0;animation:sl .7s ease .9s forwards}
+.hero-left a.cta:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.hero-right{position:relative;overflow:hidden}
+.hero-right img{width:100%;height:100%;object-fit:cover;transition:transform 8s;animation:slowZoom 20s infinite alternate}
+@keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.08)}}
+@keyframes sl{to{opacity:1;transform:translateY(0)}}.hero-left h1,.hero-left p,.hero-left .badge,.hero-left a.cta{transform:translateY(15px)}
+
+/* SECTIONS */
+.sec{padding:100px 24px}.mx{max-width:1100px;margin:0 auto}
+.sec-label{text-transform:uppercase;letter-spacing:5px;font-size:.7rem;font-weight:700;color:var(--c1);margin-bottom:8px}
+.sec-title{font-family:var(--font-h);font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:40px}
+.sec-center{text-align:center}
+
+/* ABOUT */
+.about-wrap{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:center}
+.about-img{position:relative;border-radius:0;overflow:hidden}
+.about-img img{width:100%;height:420px;object-fit:cover}
+.about-img::after{content:'';position:absolute;bottom:0;left:0;width:60%;height:4px;background:var(--c1)}
+.about-text p{color:#555;margin-bottom:16px;font-size:1.05rem}
+
+/* SERVICES — horizontal scroll */
+.srv-scroll{display:flex;gap:24px;overflow-x:auto;padding-bottom:16px;scroll-snap-type:x mandatory}
+.srv-scroll::-webkit-scrollbar{height:4px}.srv-scroll::-webkit-scrollbar-thumb{background:var(--c3);border-radius:2px}
+.srv-item{min-width:260px;scroll-snap-align:start;position:relative;border-radius:16px;overflow:hidden;aspect-ratio:3/4;flex-shrink:0}
+.srv-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s}.srv-item:hover img{transform:scale(1.06)}
+.srv-item .label{position:absolute;bottom:0;left:0;right:0;padding:20px;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent);color:#fff;font-family:var(--font-h);font-size:1.2rem}
+
+/* REVIEWS */
+.reviews{background:#faf9f7}
+.rev-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.rev{border-left:3px solid var(--c1);padding:24px 28px;background:#fff}
+.rev .stars{color:#ffd700;margin-bottom:8px;font-size:1rem;letter-spacing:2px}
+.rev p{color:#555;font-style:italic;margin-bottom:12px;font-size:1.05rem;line-height:1.8}
+.rev .author{font-weight:700;font-size:.85rem;color:#222}
+
+/* MAP */
+.map-split{display:grid;grid-template-columns:1fr 1fr;background:#111;color:#fff;min-height:400px}
+.map-text{padding:60px 48px;display:flex;flex-direction:column;justify-content:center}
+.map-text h2{font-family:var(--font-h);font-size:2rem;margin-bottom:24px}
+.map-text p{opacity:.6;margin-bottom:10px;font-size:1.05rem}
+.map-text a{color:var(--c3)}
+.map-frame iframe{width:100%;height:100%;border:0}
+
+/* CTA */
+.cta-sec{text-align:center;padding:100px 24px;background:linear-gradient(160deg,var(--c1),var(--c2));color:#fff}
+.cta-sec h2{font-family:var(--font-h);font-size:clamp(2rem,5vw,3.2rem);margin-bottom:12px}
+.cta-sec p{opacity:.8;font-size:1.1rem;margin-bottom:28px}
+.cta-sec .phone{display:block;font-size:2rem;font-weight:700;color:#fff;text-decoration:none;margin-bottom:20px}
+.cta-sec .btn{display:inline-block;padding:14px 48px;background:#fff;color:var(--c1);font-weight:700;text-decoration:none;letter-spacing:2px;text-transform:uppercase;font-size:.85rem;transition:.3s}
+.cta-sec .btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+
+.footer{text-align:center;padding:28px;font-size:.8rem;color:#999;background:#faf9f7}
+
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr}.hero-right{min-height:50vh}.hero-left{padding:60px 24px}
+  .about-wrap{grid-template-columns:1fr}.map-split{grid-template-columns:1fr}
+  .nav{padding:16px 20px}
+}
+</style>
+<script>window.addEventListener('scroll',()=>document.querySelector('.nav').classList.toggle('s',scrollY>60))</script>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="nav-logo">{{NAME_SHORT}}</a>
+  <a href="#iletisim" class="nav-btn">Randevu</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-left">
+    <h1>{{NAME}}</h1>
+    <p>{{SLOGAN}}</p>
+    <div class="badge"><span class="stars">{{STARS_EMOJI}}</span> {{RATING}}/5 · {{REVIEWS}} Google Yorumu</div>
+    <a href="#iletisim" class="cta">Randevu Al →</a>
+  </div>
+  <div class="hero-right">
+    <img src="{{HERO_IMG}}" alt="{{NAME}}">
+  </div>
+</section>
+
+<section class="sec">
+  <div class="mx">
+    <div class="about-wrap">
+      <div class="about-img">
+        <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=600&fit=crop" alt="Salon">
+      </div>
+      <div class="about-text">
+        <div class="sec-label">Hakkımızda</div>
+        <div class="sec-title">{{ABOUT_TITLE}}</div>
+        <p>{{ABOUT_TEXT}}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec sec-center">
+  <div class="mx">
+    <div class="sec-label">Hizmetlerimiz</div>
+    <div class="sec-title">Uzman Dokunuşlar</div>
+    <div class="srv-scroll">
+      <div class="srv-item"><img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=500&h=667&fit=crop" alt="{{SRV1}}"><div class="label">{{SRV1}}</div></div>
+      <div class="srv-item"><img src="https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=500&h=667&fit=crop" alt="{{SRV2}}"><div class="label">{{SRV2}}</div></div>
+      <div class="srv-item"><img src="https://images.unsplash.com/photo-1604654894610-df63bc536371?w=500&h=667&fit=crop" alt="{{SRV3}}"><div class="label">{{SRV3}}</div></div>
+      <div class="srv-item"><img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=500&h=667&fit=crop" alt="{{SRV4}}"><div class="label">{{SRV4}}</div></div>
+      <div class="srv-item"><img src="https://images.unsplash.com/photo-1560869713-7d0a29430803?w=500&h=667&fit=crop" alt="{{SRV5}}"><div class="label">{{SRV5}}</div></div>
+      <div class="srv-item"><img src="https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=500&h=667&fit=crop" alt="{{SRV6}}"><div class="label">{{SRV6}}</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec reviews">
+  <div class="mx">
+    <div class="sec-center"><div class="sec-label">Müşterilerimiz</div><div class="sec-title">Yorumlar</div></div>
+    <div class="rev-list">
+      <div class="rev"><div class="stars">★★★★★</div><p>"{{REV1}}"</p><div class="author">Google Müşterisi</div></div>
+      <div class="rev"><div class="stars">★★★★★</div><p>"{{REV2}}"</p><div class="author">Google Müşterisi</div></div>
+      <div class="rev"><div class="stars">★★★★★</div><p>"{{REV3}}"</p><div class="author">Google Müşterisi</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="map-split">
+  <div class="map-text">
+    <h2>Bize Ulaşın</h2>
+    <p>📍 {{ADDR}}</p>
+    <p>📞 <a href="tel:{{PHONE}}">{{PHONE}}</a></p>
+    <p>⭐ Google'da {{RATING}}/5</p>
+  </div>
+  <div class="map-frame"><iframe src="https://www.google.com/maps?q={{MAP_QUERY}}&output=embed" allowfullscreen loading="lazy"></iframe></div>
+</section>
+
+<section class="cta-sec" id="iletisim">
+  <h2>Güzelliğiniz İçin Bir Adım Atın</h2>
+  <p>Hemen randevu alın.</p>
+  <a href="tel:{{PHONE}}" class="phone">📞 {{PHONE}}</a>
+  <a href="tel:{{PHONE}}" class="btn">Hemen Arayın</a>
+</section>
+
+<div class="footer"><p><strong>{{NAME}}</strong> için özel hazırlanmıştır · CrewOps AI</p></div>
+</body>
+</html>

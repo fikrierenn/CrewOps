@@ -1,0 +1,463 @@
+/*
+ * CrewOps Demo Site Animation Library
+ * MagicUI pattern'lerinden vanilla CSS/SVG'ye port edilmiştir.
+ * Bu dosya referans/geliştirme içindir — template'lere inline edilir.
+ */
+
+/* ============================================
+   1. MARQUEE — Sonsuz yatay kaydırma
+   ============================================ */
+
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  --duration: 30s;
+  --gap: 1rem;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  gap: var(--gap);
+  animation: marquee var(--duration) linear infinite;
+  width: max-content;
+}
+
+.marquee-container:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Reverse direction variant */
+.marquee-track--reverse {
+  animation-direction: reverse;
+}
+
+
+/* ============================================
+   2. SHIMMER BUTTON — Dönen ışık efekti
+   ============================================ */
+
+@property --shimmer-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.shimmer-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  color: white;
+  background: var(--btn-bg, #1a1a2e);
+  border: none;
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.shimmer-btn::before {
+  content: '';
+  position: absolute;
+  inset: -200%;
+  background: conic-gradient(from var(--shimmer-angle), transparent 0%, var(--shimmer-color, rgba(255,255,255,0.3)) 10%, transparent 20%);
+  animation: shimmer-spin 3s linear infinite;
+  z-index: -1;
+}
+
+.shimmer-btn::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: var(--btn-bg, #1a1a2e);
+  border-radius: inherit;
+  z-index: -1;
+}
+
+@keyframes shimmer-spin {
+  to { --shimmer-angle: 360deg; }
+}
+
+
+/* ============================================
+   3. BORDER BEAM — Kenar boyunca yürüyen ışık
+   ============================================ */
+
+.border-beam {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius, 1rem);
+}
+
+.border-beam::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--beam-angle, 0deg), transparent 80%, var(--beam-color, #fbbf24) 90%, transparent 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: beam-rotate 4s linear infinite;
+}
+
+@property --beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes beam-rotate {
+  to { --beam-angle: 360deg; }
+}
+
+
+/* ============================================
+   4. BLUR FADE TEXT — Bulanıktan nete text reveal
+   ============================================ */
+
+.blur-fade {
+  animation: blur-fade-in 0.8s ease-out both;
+}
+
+.blur-fade-delay-1 { animation-delay: 0.1s; }
+.blur-fade-delay-2 { animation-delay: 0.2s; }
+.blur-fade-delay-3 { animation-delay: 0.3s; }
+.blur-fade-delay-4 { animation-delay: 0.4s; }
+.blur-fade-delay-5 { animation-delay: 0.5s; }
+
+@keyframes blur-fade-in {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* Viewport'a girince tetiklenmesi için (IntersectionObserver ile) */
+.blur-fade-hidden {
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(8px);
+}
+
+
+/* ============================================
+   5. AURORA BACKGROUND — Çoklu gradient animasyonu
+   ============================================ */
+
+.aurora-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.aurora-bg::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background:
+    radial-gradient(circle at 20% 50%, var(--aurora-1, rgba(120, 119, 198, 0.3)) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, var(--aurora-2, rgba(255, 119, 198, 0.3)) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, var(--aurora-3, rgba(120, 200, 255, 0.3)) 0%, transparent 50%);
+  animation: aurora-drift 8s ease-in-out infinite alternate;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.8;
+  }
+}
+
+
+/* ============================================
+   6. RETRO GRID — Perspektif grid arka plan
+   ============================================ */
+
+.retro-grid {
+  position: relative;
+  overflow: hidden;
+}
+
+.retro-grid::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background-image:
+    linear-gradient(to right, var(--grid-color, rgba(255,255,255,0.1)) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color, rgba(255,255,255,0.1)) 1px, transparent 1px);
+  background-size: 40px 40px;
+  transform: perspective(500px) rotateX(60deg);
+  transform-origin: bottom center;
+  mask-image: linear-gradient(to bottom, transparent 10%, black 40%, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 40%, black 60%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+/* ============================================
+   7. METEOR LINES — Düşen çizgi animasyonları
+   ============================================ */
+
+.meteor {
+  position: absolute;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(to bottom, var(--meteor-color, rgba(255,255,255,0.8)), transparent);
+  border-radius: 999px;
+  animation: meteor-fall var(--meteor-duration, 5s) linear infinite;
+  opacity: 0;
+}
+
+@keyframes meteor-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-100px) translateX(0) rotate(-45deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(100vh + 100px)) translateX(-200px) rotate(-45deg);
+  }
+}
+
+/* Meteor pozisyonları ve gecikmeleri (template'de inline style ile de verilebilir) */
+.meteor:nth-child(1) { left: 15%; animation-delay: 0s; --meteor-duration: 4s; }
+.meteor:nth-child(2) { left: 35%; animation-delay: 1.5s; --meteor-duration: 5s; }
+.meteor:nth-child(3) { left: 55%; animation-delay: 3s; --meteor-duration: 6s; }
+.meteor:nth-child(4) { left: 75%; animation-delay: 0.8s; --meteor-duration: 4.5s; }
+.meteor:nth-child(5) { left: 90%; animation-delay: 2.2s; --meteor-duration: 5.5s; }
+
+
+/* ============================================
+   8. MAGIC CARD — Mouse tracking gradient
+   ============================================ */
+
+/* Bu efekt 15 satır JS gerektirir (template'e inline edilir):
+
+<script>
+document.querySelectorAll('.magic-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+    card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.removeProperty('--mx');
+    card.style.removeProperty('--my');
+  });
+});
+</script>
+*/
+
+.magic-card {
+  --mx: 50%;
+  --my: 50%;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius, 1rem);
+  background: var(--card-bg, #1a1a2e);
+  transition: transform 0.2s ease;
+}
+
+.magic-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    400px circle at var(--mx) var(--my),
+    var(--magic-color, rgba(255,255,255,0.08)),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.magic-card:hover::before {
+  opacity: 1;
+}
+
+.magic-card:hover {
+  transform: scale(1.01);
+}
+
+
+/* ============================================
+   9. GLASS MORPHISM — Buzlu cam efekti
+   ============================================ */
+
+.glass {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius, 1rem);
+}
+
+
+/* ============================================
+   10. TYPING ANIMATION — Daktilo efekti
+   ============================================ */
+
+.typing {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid var(--cursor-color, currentColor);
+  animation:
+    typing-text 3s steps(30, end) both,
+    typing-cursor 0.75s step-end infinite;
+  width: fit-content;
+  max-width: 100%;
+}
+
+@keyframes typing-text {
+  from { max-width: 0; }
+  to { max-width: 100%; }
+}
+
+@keyframes typing-cursor {
+  50% { border-color: transparent; }
+}
+
+
+/* ============================================
+   11. PULSE RIPPLE — Nabız efekti (CTA vurgusu)
+   ============================================ */
+
+.pulse-ripple {
+  position: relative;
+}
+
+.pulse-ripple::before,
+.pulse-ripple::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid var(--ripple-color, rgba(255, 255, 255, 0.3));
+  animation: ripple-out 2s ease-out infinite;
+}
+
+.pulse-ripple::after {
+  animation-delay: 1s;
+}
+
+@keyframes ripple-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+
+/* ============================================
+   12. DOT PATTERN — SVG nokta deseni (arka plan)
+   ============================================ */
+
+/*
+SVG inline pattern (template'e eklenir):
+
+<svg class="dot-pattern" width="100%" height="100%">
+  <defs>
+    <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="currentColor" opacity="0.2"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#dots)"/>
+</svg>
+*/
+
+.dot-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--dot-color, #888);
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+}
+
+
+/* ============================================
+   13. SCROLL REVEAL — Viewport'a girince animasyon
+   ============================================ */
+
+/*
+IntersectionObserver ile kullanım (template JS):
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('revealed');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+*/
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-reveal-delay-1 { transition-delay: 0.1s; }
+.scroll-reveal-delay-2 { transition-delay: 0.2s; }
+.scroll-reveal-delay-3 { transition-delay: 0.3s; }
+.scroll-reveal-delay-4 { transition-delay: 0.4s; }
+
+
+/* ============================================
+   GPU Acceleration Utilities
+   ============================================ */
+
+.gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.gpu-opacity {
+  will-change: opacity;
+}

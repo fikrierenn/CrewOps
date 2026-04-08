@@ -1,0 +1,57 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+
+# IDE
+.vs/
+.idea/
+*.swp
+*.swo
+
+# Build
+publish/
+out/
+
+# Logs
+logs/
+*.log
+
+# Env / secrets
+.env
+appsettings.json
+appsettings.Development.json
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Node (V1)
+node_modules/
+dist/
+.turbo/
+
+# Generated demos
+wwwroot/demos/
+
+# Claude Code
+.claude/plans/
+.claude/worktrees/
+
+# Temp
+*.tmp
+*.bak
+
+# Large files
+*.db
+*.db-shm
+*.db-wal
+TUM_PROJE_KODLARI.txt
+nul
+
+# Batch scripts
+*.bat
+

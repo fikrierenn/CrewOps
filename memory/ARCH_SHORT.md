@@ -1,0 +1,7 @@
+- Kullanılan teknolojiler: Next.js (React tabanlı frontend ve API Routes için), TypeScript, Node.js (backend), SQL Veritabanı (örn. PostgreSQL, MySQL veya SQLite), Harici Yapay Zeka Servisi (API üzerinden).
+- Temel bileşenler:
+    - Frontend: Next.js uygulaması, React bileşenleri, toplantı planlama, gündem, not ve görev yönetimi arayüzleri.
+    - Backend: Next.js API Routes ile RESTful API katmanı, iş mantığı, veritabanı etkileşimi ve harici AI servis entegrasyonu.
+    - Veritabanı: Toplantılar, gündem maddeleri, notlar, görevler, kullanıcılar gibi varlıkları depolayan ilişkisel bir veritabanı.
+    - Yapay Zeka Entegrasyonu: Toplantı notlarını işleyerek özet ve aksiyon maddeleri çıkaran harici bir AI servis sağlayıcısı ile iletişim modülü.
+- Veri akışı: Kullanıcı arayüzünden gelen istekler (toplantı oluşturma, not kaydetme, görev atama vb.) Next.js API Routes'a iletilir. API katmanı, gelen veriyi işler, veritabanı ile etkileşime girer. Not işleme gerektiğinde, API katmanı harici AI servisine istek gönderir, gelen yanıtları ayrıştırır ve veritabanına kaydeder. İşlenen veriler ve sonuçlar tekrar kullanıcı arayüzüne gönderilir.

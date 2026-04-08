@@ -1,0 +1,332 @@
+@page "/project/{ProjectId:guid}/chat"
+@page "/chat/new"
+@using CrewOps.Api.Services
+@using CrewOps.Domain.Aggregates
+@using CrewOps.Domain.Ports
+@using CrewOps.Domain.StateMachine
+@inject PmAgentService PmAgent
+@inject IProjectRepository ProjectRepo
+@inject IProjectStateMachine StateMachine
+@inject NavigationManager Nav
+@inject IHttpClientFactory HttpFactory
+@rendermode InteractiveServer
+
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="chat-header-left">
+            <div class="agent-avatar">PM</div>
+            <div>
+                <h1>@(_project?.Name ?? "Yeni Proje")</h1>
+                <span class="chat-status">
+                    @if (_isThinking)
+                    {
+                        <span class="thinking-dot"></span>
+                        <span>PM düşünüyor...</span>
+                    }
+                    else
+                    {
+                        <span>@(_project?.State.ToString() ?? "Başlamadı")</span>
+                    }
+                </span>
+            </div>
+        </div>
+        @if (_project is not null)
+        {
+            <a href="/project/@_project.Id" class="header-link">Proje Detayı</a>
+        }
+    </div>
+
+    <div class="chat-messages" @ref="_messagesDiv">
+        @if (!_messages.Any())
+        {
+            <div class="welcome-message">
+                <div class="welcome-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <h2>CrewOps PM</h2>
+                <p>Merhaba! Ben projenizin Product Manager'ıyım.<br/>
+                Ne yapmak istediğinizi anlatın, ben planı çıkarayım ve takımı kurayım.</p>
+            </div>
+        }
+
+        @foreach (var msg in _messages)
+        {
+            <div class="message @(msg.Role == "user" ? "message-user" : "message-assistant")">
+                @if (msg.Role == "assistant")
+                {
+                    <div class="message-avatar">PM</div>
+                }
+                <div class="message-bubble">
+                    <div class="message-content">@((MarkupString)FormatMarkdown(msg.Content))</div>
+                </div>
+                @if (msg.Role == "user")
+                {
+                    <div class="message-avatar user-avatar">Sen</div>
+                }
+            </div>
+        }
+
+        @if (_isThinking)
+        {
+            <div class="message message-assistant">
+                <div class="message-avatar">PM</div>
+                <div class="message-bubble thinking">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_isExecuting)
+        {
+            <div class="execution-panel">
+                <div class="execution-header">
+                    <div class="exec-spinner"></div>
+                    <strong>Agent'lar Çalışıyor</strong>
+                </div>
+                @foreach (var log in _progressLogs)
+                {
+                    <div class="exec-log">@log</div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (_showQuickActions && !_isThinking && !_isExecuting)
+    {
+        <div class="quick-actions">
+            <button class="quick-btn" @onclick="QuickApprove">✅ Onayla</button>
+            <button class="quick-btn" @onclick="QuickDetail">📋 Detaylandır</button>
+            <button class="quick-btn" @onclick="QuickChange">✏️ Değiştir</button>
+            <button class="quick-btn" @onclick="QuickMore">🔍 Daha Fazla</button>
+        </div>
+    }
+
+    <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+            <textarea @bind="_inputText" @bind:event="oninput"
+                      @onkeydown="HandleKeyDown"
+                      placeholder="PM'e mesajınızı yazın... (Enter gönderir, Shift+Enter yeni satır)"
+                      rows="1"
+                      disabled="@_isThinking"></textarea>
+            <button @onclick="SendMessage" disabled="@(_isThinking || string.IsNullOrWhiteSpace(_inputText))" class="send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+            </button>
+        </div>
+        <div class="input-hint">
+            @if (_project is not null)
+            {
+                <span class="provider-badge">🤖 @PmAgent.ActiveProvider</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+
+    private Project? _project;
+    private List<ChatMessage> _messages = new();
+    private string _inputText = "";
+    private bool _isThinking;
+    private bool _isExecuting;
+    private bool _showQuickActions;
+    private List<string> _progressLogs = new();
+    private ElementReference _messagesDiv;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ProjectId != Guid.Empty)
+        {
+            _project = await ProjectRepo.FindByIdAsync(ProjectId);
+            _messages = PmAgent.GetHistory(ProjectId).ToList();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(_inputText) || _isThinking) return;
+
+        var userText = _inputText.Trim();
+        _inputText = "";
+
+        // Proje yoksa oluştur
+        if (_project is null)
+        {
+            _project = Project.CreateUniversal("Yeni Proje", userText);
+            await ProjectRepo.AddAsync(_project);
+            ProjectId = _project.Id;
+
+            // New → Discovery
+            StateMachine.Transition(_project, Domain.ValueObjects.ProjectState.Discovery, "system:pm");
+            await ProjectRepo.UpdateAsync(_project);
+        }
+
+        _messages.Add(new ChatMessage("user", userText));
+        _isThinking = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await PmAgent.ChatAsync(ProjectId, userText);
+            _messages = PmAgent.GetHistory(ProjectId).ToList();
+            _isThinking = false;
+
+            // PM yanıtında proje adı varsa kaydet
+            await TryUpdateProjectName(response);
+
+            StateHasChanged();
+
+            // PM plan sundu mu? Quick action butonlarını göster
+            _showQuickActions = PlanParser.ContainsPlan(response) || response.Contains("onaylıyor musunuz", StringComparison.OrdinalIgnoreCase);
+
+            // PM onay verdi mi kontrol et — verdiyse orkestrasyon başlat
+            var isApproval = PlanParser.IsApprovalConfirmation(response);
+            if (isApproval)
+            {
+                var history = PmAgent.GetHistory(ProjectId);
+                var parsedTasks = PlanParser.ParsePlan(history);
+                if (parsedTasks.Count > 0)
+                {
+                    await StartOrchestration(parsedTasks);
+                }
+                else
+                {
+                    _messages.Add(new ChatMessage("assistant",
+                        $"[Sistem] Plan onayı tespit edildi ama görev parse edilemedi. " +
+                        $"History: {history.Count} mesaj, Plan var mı: {history.Any(m => PlanParser.ContainsPlan(m.Content))}"));
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _messages.Add(new ChatMessage("assistant", $"Bir hata oluştu: {ex.Message}"));
+            _isThinking = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StartOrchestration(List<ParsedTask> parsedTasks)
+    {
+        _isExecuting = true;
+        _progressLogs.Clear();
+        _progressLogs.Add($"{parsedTasks.Count} görev bulundu, orkestrasyon başlatılıyor...");
+        StateHasChanged();
+
+        try
+        {
+            using var http = HttpFactory.CreateClient();
+            http.BaseAddress = new Uri(Nav.BaseUri);
+            var response = await http.PostAsync($"api/orchestration/{ProjectId}/start", null);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                _progressLogs.Add("Orkestrasyon başlatıldı! Agent'lar çalışıyor...");
+                _progressLogs.Add("Dashboard'dan takip edebilirsiniz.");
+                _messages.Add(new ChatMessage("assistant",
+                    $"Orkestrasyon başlatıldı! Agent'lar arka planda çalışıyor.\n\n" +
+                    $"Takip için:\n→ Dashboard: /\n→ Görevler: /project/{ProjectId}/tasks\n→ Timeline: /project/{ProjectId}/executions\n→ Aktivite: /project/{ProjectId}/activity"));
+            }
+            else
+            {
+                _progressLogs.Add($"Hata: {body}");
+                _messages.Add(new ChatMessage("assistant", $"Orkestrasyon başlatılamadı: {body}"));
+            }
+        }
+        catch (Exception ex)
+        {
+            _progressLogs.Add($"Hata: {ex.Message}");
+            _messages.Add(new ChatMessage("assistant", $"Orkestrasyon hatası: {ex.Message}"));
+        }
+        finally
+        {
+            await Task.Delay(3000);
+            _isExecuting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task TryUpdateProjectName(string pmResponse)
+    {
+        if (_project is null || _project.Name != "Yeni Proje") return;
+
+        string? projectName = null;
+
+        // [PROJE_ADI: ...] formatını ara
+        var tagMatch = System.Text.RegularExpressions.Regex.Match(pmResponse, @"\[PROJE_ADI:\s*(.+?)\]");
+        if (tagMatch.Success)
+        {
+            projectName = tagMatch.Groups[1].Value.Trim();
+        }
+
+        // Tag yoksa "### Proje Planı: ..." başlığından çıkar
+        if (projectName is null)
+        {
+            var planMatch = System.Text.RegularExpressions.Regex.Match(pmResponse, @"Proje Plan[ıi]:\s*(.+?)(?:\n|$)");
+            if (planMatch.Success)
+                projectName = planMatch.Groups[1].Value.Trim().TrimEnd('*').Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(projectName))
+        {
+            // Reflection ile Name'i set et (private setter)
+            var nameProp = typeof(Project).GetProperty(nameof(Project.Name))!;
+            nameProp.SetValue(_project, projectName);
+            await ProjectRepo.UpdateAsync(_project);
+        }
+    }
+
+    private Task QuickApprove() => QuickSend("Evet, onayla ve hemen başla.");
+    private Task QuickDetail() => QuickSend("Planı daha detaylı açıkla.");
+    private Task QuickChange() => QuickSend("Hayır, planı değiştirmek istiyorum.");
+    private Task QuickMore() => QuickSend("Daha fazla sonuç bul.");
+
+    private async Task QuickSend(string text)
+    {
+        _inputText = text;
+        _showQuickActions = false;
+        await SendMessage();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await SendMessage();
+        }
+    }
+
+    private static string FormatMarkdown(string text)
+    {
+        var html = text
+            .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
+            .Replace("\n\n", "</p><p>")
+            .Replace("\n", "<br/>");
+
+        // Bold
+        while (html.Contains("**"))
+        {
+            html = html.ReplaceFirst("**", "<strong>");
+            html = html.ReplaceFirst("**", "</strong>");
+        }
+
+        // Headers
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^### (.+?)(<br/>|</p>)", "<h4>$1</h4>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^## (.+?)(<br/>|</p>)", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Linkler: /project/xxx/yyy → tıklanabilir
+        html = MarkdownHelper.MakeLinksClickable(html);
+
+        // [PROJE_ADI: ...] tag'ını gizle
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\[PROJE_ADI:\s*.+?\]", "");
+
+        return $"<p>{html}</p>";
+    }
+}

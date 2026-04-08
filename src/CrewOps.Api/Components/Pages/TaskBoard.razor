@@ -1,0 +1,55 @@
+@page "/project/{ProjectId:guid}/tasks"
+@using CrewOps.Domain.Aggregates
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@rendermode InteractiveServer
+
+<h1>Görev Panosu</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Başlık</th>
+            <th>Rol</th>
+            <th>Durum</th>
+            <th>Karmaşıklık</th>
+            <th>Bağımlılık</th>
+            <th>Retry</th>
+            <th>Son Güncelleme</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var task in _tasks)
+        {
+            <tr>
+                <td>@task.Title</td>
+                <td><span class="role-badge">@task.RoleId</span></td>
+                <td><span class="badge badge-@task.Status.ToString().ToLower()">@task.Status</span></td>
+                <td>@task.ComplexityHint</td>
+                <td>@task.DependencyIds.Count</td>
+                <td>@task.RetryCount</td>
+                <td>@task.UpdatedAt.ToString("HH:mm:ss")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!_tasks.Any())
+{
+    <p class="empty-state">Bu projede henüz görev bulunmuyor.</p>
+}
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    private IReadOnlyList<CrewOpsTask> _tasks = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _tasks = await db.Tasks
+            .Where(t => t.ProjectId == ProjectId)
+            .OrderBy(t => t.CreatedAt)
+            .ToListAsync();
+    }
+}

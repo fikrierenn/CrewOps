@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CrewOps - Demo Template Preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#0a0a0f;color:#e8e6e3;min-height:100vh}
+h1{text-align:center;padding:32px 16px 8px;font-size:1.6rem;font-weight:600}
+.subtitle{text-align:center;color:#888;font-size:.9rem;margin-bottom:32px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;padding:0 24px 48px;max-width:1400px;margin:0 auto}
+.card{border:1px solid #222;border-radius:12px;overflow:hidden;transition:all .3s;cursor:pointer}
+.card:hover{border-color:#666;transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.card iframe{width:100%;height:480px;border:0;pointer-events:none}
+.card-info{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:#111}
+.card-name{font-weight:600;font-size:.95rem}
+.card-meta{font-size:.75rem;color:#888}
+.card-link{display:inline-block;padding:6px 14px;background:#333;color:#ddd;border-radius:6px;font-size:.75rem;text-decoration:none;transition:background .2s}
+.card-link:hover{background:#555}
+
+/* Color selector */
+.color-bar{display:flex;justify-content:center;gap:8px;padding:16px;flex-wrap:wrap}
+.color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.color-dot:hover,.color-dot.active{border-color:#fff;transform:scale(1.15)}
+.color-label{text-align:center;font-size:.7rem;color:#666;margin-bottom:24px}
+
+/* Full preview overlay */
+.overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.9)}
+.overlay.show{display:block}
+.overlay iframe{width:100%;height:100%;border:0}
+.overlay-close{position:fixed;top:16px;right:16px;z-index:1001;width:40px;height:40px;border-radius:50%;background:#333;color:#fff;border:none;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.overlay-close:hover{background:#555}
+</style>
+</head>
+<body>
+
+<h1>🎨 Demo Template Preview</h1>
+<p class="subtitle">6 template × 12 renk = 72 kombinasyon</p>
+
+<div class="color-bar" id="colorBar"></div>
+<div class="color-label" id="colorName">Purple</div>
+
+<div class="grid" id="grid"></div>
+
+<!-- Full preview overlay -->
+<div class="overlay" id="overlay">
+  <button class="overlay-close" onclick="closeOverlay()">✕</button>
+  <iframe id="overlayFrame" src=""></iframe>
+</div>
+
+<script>
+const templates = [
+  { name: 'Luxury Dark', id: 'luxury', desc: 'Aurora, meteor, glass cards' },
+  { name: 'Modern Minimal', id: 'minimal', desc: 'Blur-fade, border-beam, shimmer' },
+  { name: 'Warm Organic', id: 'organic', desc: 'Retro grid, serif, earth tones' },
+  { name: 'Bold Gradient', id: 'gradient', desc: 'Gradient mesh, pulsing borders' },
+  { name: 'Magazine Editorial', id: 'editorial', desc: 'Large type, striped pattern' },
+  { name: 'Interactive Card', id: 'cards', desc: 'Magic card, marquee carousel' },
+];
+
+const colors = [
+  { name: 'Purple', hex: '#8b5cf6' },
+  { name: 'Emerald', hex: '#059669' },
+  { name: 'Rose', hex: '#e11d48' },
+  { name: 'Cyan', hex: '#0891b2' },
+  { name: 'Orange', hex: '#c2410c' },
+  { name: 'Violet', hex: '#7c3aed' },
+  { name: 'Gold', hex: '#b45309' },
+  { name: 'Navy', hex: '#1e3a5f' },
+  { name: 'Forest', hex: '#065f46' },
+  { name: 'Crimson', hex: '#9f1239' },
+  { name: 'Slate', hex: '#44403c' },
+  { name: 'Terracotta', hex: '#92400e' },
+];
+
+let currentColor = 0;
+
+// Render color dots
+const colorBar = document.getElementById('colorBar');
+colors.forEach((c, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'color-dot' + (i === 0 ? ' active' : '');
+  dot.style.background = c.hex;
+  dot.title = c.name;
+  dot.onclick = () => setColor(i);
+  colorBar.appendChild(dot);
+});
+
+function setColor(idx) {
+  currentColor = idx;
+  document.querySelectorAll('.color-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  document.getElementById('colorName').textContent = colors[idx].name;
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  templates.forEach(t => {
+    const url = `/api/demo-templates/preview?template=${t.id}&color=${currentColor}`;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <iframe src="${url}" loading="lazy"></iframe>
+      <div class="card-info">
+        <div>
+          <div class="card-name">${t.name}</div>
+          <div class="card-meta">${t.desc}</div>
+        </div>
+        <a class="card-link" href="${url}" target="_blank">Tam Ekran ↗</a>
+      </div>
+    `;
+    card.querySelector('iframe').onclick = () => openOverlay(url);
+    card.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'A') openOverlay(url);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function openOverlay(url) {
+  document.getElementById('overlayFrame').src = url;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('overlayFrame').src = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay(); });
+
+renderGrid();
+</script>
+</body>
+</html>

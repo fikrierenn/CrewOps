@@ -1,0 +1,17 @@
+{
+  "name": "orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ink tabanlı AI Team Orchestrator TUI uygulaması",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "ts-node --transpile-only -r tsconfig-paths/register src/index.tsx",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "ink": "^3.2.0",
+    "react": "^18.3.1"
+  }
+}

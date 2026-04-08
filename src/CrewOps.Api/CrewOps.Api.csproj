@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\CrewOps.Domain\CrewOps.Domain.csproj" />
+    <ProjectReference Include="..\CrewOps.Infrastructure\CrewOps.Infrastructure.csproj" />
+    <ProjectReference Include="..\CrewOps.Capabilities\CrewOps.Capabilities.csproj" />
+    <ProjectReference Include="..\CrewOps.Contracts\CrewOps.Contracts.csproj" />
+    <ProjectReference Include="..\CrewOps.Application\CrewOps.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,90 @@
+@page "/project/{ProjectId:guid}/leads"
+@using CrewOps.Domain.Entities
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@rendermode InteractiveServer
+
+<h1>Potansiyel Musteriler (Leads)</h1>
+
+@if (_leads.Any())
+{
+    <div class="summary-cards">
+        <div class="card">
+            <h3>Toplam Lead</h3>
+            <span class="count">@_leads.Count</span>
+        </div>
+        <div class="card">
+            <h3>Sitesi Yok</h3>
+            <span class="count">@_leads.Count(l => l.WebsiteStatus == "yok")</span>
+        </div>
+        <div class="card">
+            <h3>Ort. Puan</h3>
+            <span class="count">@(_leads.Where(l => l.GoogleRating.HasValue).Average(l => l.GoogleRating!.Value).ToString("F1"))</span>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Ad</th>
+                <th>Ilce</th>
+                <th>Telefon</th>
+                <th>Puan</th>
+                <th>Yorum</th>
+                <th>Site</th>
+                <th>Durum</th>
+                <th>Demo</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var lead in _leads)
+            {
+                <tr>
+                    <td><strong>@lead.Name</strong></td>
+                    <td>@(lead.District ?? lead.Address?.Split(',').LastOrDefault()?.Trim() ?? "-")</td>
+                    <td>@(lead.Phone ?? "-")</td>
+                    <td>@(lead.GoogleRating?.ToString("F1") ?? "-")</td>
+                    <td>@(lead.GoogleReviewCount?.ToString() ?? "-")</td>
+                    <td>
+                        <span class="badge badge-@(lead.WebsiteStatus == "yok" ? "failed" : lead.WebsiteStatus == "kötü" ? "inreview" : "completed")">
+                            @(lead.WebsiteStatus ?? "-")
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-@lead.Status.ToLower()">@lead.Status</span>
+                    </td>
+                    <td>
+                        @if (lead.DemoSiteUrl is not null)
+                        {
+                            <a href="@lead.DemoSiteUrl" target="_blank" class="chat-link">Demo</a>
+                        }
+                        else
+                        {
+                            <span class="meta-text">-</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="empty-state">Henuz lead bulunmuyor. PM ile sohbet baslatin ve arastirma yaptirin.</p>
+}
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    private List<Lead> _leads = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _leads = await db.Leads
+            .Where(l => l.ProjectId == ProjectId)
+            .OrderByDescending(l => l.GoogleRating)
+            .ThenByDescending(l => l.GoogleReviewCount)
+            .ToListAsync();
+    }
+}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{NAME}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c1:{{C1}};--c2:{{C2}};--c3:{{C3}};
+  --font-display:'Playfair Display',Georgia,serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a28;
+  --text:#e8e6e3;--text-dim:#8a8a9a;--gold:#d4a853;--gold-dim:rgba(212,168,83,.15);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);color:var(--text);background:var(--bg);line-height:1.7;overflow-x:hidden}
+img{max-width:100%;display:block}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
+.nav.scrolled{background:rgba(10,10,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,168,83,.1);padding:16px 48px}
+.nav-logo{font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--gold);text-decoration:none;letter-spacing:2px}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;transition:color .3s}
+.nav-links a:hover{color:var(--gold)}
+.nav-cta{position:relative;padding:12px 32px;border:1px solid var(--gold);color:var(--gold);font-size:.8rem;font-weight:600;text-decoration:none;letter-spacing:2px;text-transform:uppercase;transition:all .3s;overflow:hidden}
+.nav-cta::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:right;transition:transform .4s ease}
+.nav-cta:hover{color:var(--bg)}
+.nav-cta:hover::before{transform:scaleX(1);transform-origin:left}
+.nav-cta span{position:relative;z-index:1}
+
+/* HERO — Aurora + Meteors */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg)}
+
+.hero-aurora{position:absolute;inset:-50%;pointer-events:none;z-index:0}
+.hero-aurora::before{content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 20% 40%,rgba({{RGB1}},.2) 0%,transparent 50%),
+    radial-gradient(circle at 80% 60%,rgba({{RGB2}},.15) 0%,transparent 50%),
+    radial-gradient(circle at 50% 80%,rgba(212,168,83,.1) 0%,transparent 40%);
+  animation:aurora 10s ease-in-out infinite alternate}
+@keyframes aurora{
+  0%{transform:rotate(0deg) scale(1);opacity:.6}
+  50%{transform:rotate(180deg) scale(1.3);opacity:1}
+  100%{transform:rotate(360deg) scale(1);opacity:.6}
+}
+
+.meteor{position:absolute;width:2px;height:80px;background:linear-gradient(to bottom,rgba(212,168,83,.7),transparent);border-radius:999px;animation:meteor-fall var(--d,5s) linear infinite;opacity:0}
+@keyframes meteor-fall{
+  0%{opacity:0;transform:translateY(-100px) translateX(0) rotate(-45deg)}
+  10%{opacity:1}70%{opacity:1}
+  100%{opacity:0;transform:translateY(calc(100vh + 100px)) translateX(-200px) rotate(-45deg)}
+}
+
+.hero-content{position:relative;z-index:2;text-align:center;max-width:900px;padding:0 24px}
+.hero-label{text-transform:uppercase;letter-spacing:6px;font-size:.7rem;color:var(--gold);font-weight:600;margin-bottom:24px;opacity:0;animation:fadeUp .8s ease .2s forwards}
+.hero h1{font-family:var(--font-display);font-size:clamp(3.5rem,8vw,6rem);font-weight:900;line-height:1.05;margin-bottom:24px;
+  background:linear-gradient(135deg,var(--text) 0%,var(--gold) 50%,var(--text) 100%);background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:fadeUp .8s ease .4s forwards,textShine 4s linear infinite;opacity:0}
+@keyframes textShine{to{background-position:200% center}}
+.hero-sub{font-size:clamp(1rem,2vw,1.25rem);color:var(--text-dim);font-weight:300;max-width:600px;margin:0 auto 20px;opacity:0;animation:fadeUp .8s ease .6s forwards}
+.hero-rating{display:inline-flex;align-items:center;gap:12px;background:rgba(212,168,83,.08);border:1px solid rgba(212,168,83,.2);backdrop-filter:blur(10px);padding:14px 28px;border-radius:60px;font-size:.9rem;opacity:0;animation:fadeUp .8s ease .8s forwards}
+.hero-rating .stars{color:var(--gold);font-size:1.1rem;letter-spacing:3px}
+
+/* Shimmer CTA Button */
+@property --sa{syntax:'<angle>';initial-value:0deg;inherits:false}
+.hero-cta{display:inline-block;margin-top:36px;position:relative;padding:18px 56px;background:transparent;color:var(--gold);font-weight:600;font-size:.85rem;text-decoration:none;letter-spacing:3px;text-transform:uppercase;border:none;cursor:pointer;overflow:hidden;isolation:isolate;opacity:0;animation:fadeUp .8s ease 1s forwards}
+.hero-cta::before{content:'';position:absolute;inset:-2px;background:conic-gradient(from var(--sa),transparent 0%,var(--gold) 10%,transparent 20%);animation:shimSpin 3s linear infinite;z-index:-2;border-radius:4px}
+.hero-cta::after{content:'';position:absolute;inset:2px;background:var(--bg);z-index:-1;border-radius:2px}
+@keyframes shimSpin{to{--sa:360deg}}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.hero-label,.hero h1,.hero-sub,.hero-rating,.hero-cta{transform:translateY(24px)}
+
+/* SECTION COMMON */
+.section{padding:120px 24px;position:relative}
+.section-label{text-align:center;text-transform:uppercase;letter-spacing:6px;font-size:.7rem;font-weight:600;color:var(--gold);margin-bottom:12px}
+.section-title{font-family:var(--font-display);font-size:clamp(2rem,5vw,3rem);text-align:center;margin-bottom:16px;font-weight:700}
+.section-sub{text-align:center;color:var(--text-dim);font-size:1rem;max-width:560px;margin:0 auto 56px;font-weight:300}
+
+/* Scroll reveal */
+.sr{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.sr.v{opacity:1;transform:translateY(0)}
+.sr-d1{transition-delay:.1s}.sr-d2{transition-delay:.2s}.sr-d3{transition-delay:.3s}.sr-d4{transition-delay:.4s}
+
+/* ABOUT */
+.about{background:var(--surface)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;max-width:1100px;margin:0 auto;align-items:center}
+.about-img{position:relative;border-radius:12px;overflow:hidden}
+.about-img img{width:100%;height:450px;object-fit:cover}
+.about-img::after{content:'';position:absolute;inset:0;border:1px solid rgba(212,168,83,.2);border-radius:12px;pointer-events:none}
+.about-text h3{font-family:var(--font-display);font-size:1.8rem;margin-bottom:20px}
+.about-text p{color:var(--text-dim);margin-bottom:20px;font-weight:300}
+.about-stat{display:flex;gap:32px;margin-top:32px}
+.about-stat-item{text-align:center}
+.about-stat-num{font-family:var(--font-display);font-size:2.5rem;color:var(--gold);font-weight:700}
+.about-stat-label{font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px}
+
+/* SERVICES — Glass cards */
+.srv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto}
+.srv-card{position:relative;background:rgba(255,255,255,.03);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:36px 28px;text-align:center;transition:all .4s;overflow:hidden}
+.srv-card::before{content:'';position:absolute;inset:0;background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(212,168,83,.06),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.srv-card:hover{transform:translateY(-4px);border-color:rgba(212,168,83,.2)}
+.srv-card:hover::before{opacity:1}
+.srv-icon{font-size:2.5rem;margin-bottom:16px}
+.srv-card h3{font-family:var(--font-display);font-size:1.2rem;margin-bottom:8px}
+.srv-card p{color:var(--text-dim);font-size:.9rem;font-weight:300}
+
+/* REVIEWS — Glass */
+.reviews{background:var(--surface)}
+.rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto}
+.rev-card{background:rgba(255,255,255,.02);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.05);border-radius:16px;padding:36px;transition:all .3s}
+.rev-card:hover{border-color:rgba(212,168,83,.15);transform:translateY(-2px)}
+.rev-stars{color:var(--gold);font-size:1rem;letter-spacing:3px;margin-bottom:16px}
+.rev-text{color:var(--text-dim);font-style:italic;margin-bottom:20px;font-size:.95rem;line-height:1.8;font-weight:300}
+.rev-line{width:40px;height:1px;background:var(--gold);opacity:.3;margin-bottom:12px}
+.rev-author{font-weight:600;font-size:.85rem;color:var(--text)}
+
+/* MAP */
+.map-section{background:var(--surface2);position:relative}
+.map-content{display:grid;grid-template-columns:1fr 1fr;min-height:450px;max-width:1400px;margin:0 auto}
+.map-info{padding:80px 64px;display:flex;flex-direction:column;justify-content:center}
+.map-info h2{font-family:var(--font-display);font-size:2.2rem;margin-bottom:32px}
+.map-detail{display:flex;align-items:center;gap:12px;margin-bottom:16px;color:var(--text-dim);font-size:1rem}
+.map-detail-icon{width:40px;height:40px;border-radius:10px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.map-detail a{color:var(--gold);text-decoration:none}
+.map-frame{min-height:450px}
+.map-frame iframe{width:100%;height:100%;border:0;filter:invert(.9) hue-rotate(180deg);opacity:.7}
+
+/* CTA */
+.cta-section{position:relative;text-align:center;padding:120px 24px;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba({{RGB1}},.15),rgba({{RGB2}},.1));pointer-events:none}
+.cta-section h2{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);margin-bottom:16px;position:relative}
+.cta-section p{color:var(--text-dim);font-size:1.1rem;margin-bottom:40px;font-weight:300;position:relative}
+.cta-phone{display:inline-block;font-family:var(--font-display);font-size:2.5rem;font-weight:700;color:var(--gold);text-decoration:none;margin-bottom:32px;transition:transform .3s;position:relative}
+.cta-phone:hover{transform:scale(1.05)}
+.cta-btn{display:inline-block;position:relative;background:var(--gold);color:var(--bg);padding:18px 56px;font-weight:700;font-size:.85rem;text-decoration:none;text-transform:uppercase;letter-spacing:2px;transition:all .3s;border-radius:2px}
+.cta-btn:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(212,168,83,.3)}
+
+/* Pulse ripple on CTA */
+.cta-btn::before,.cta-btn::after{content:'';position:absolute;inset:-6px;border:1px solid var(--gold);opacity:0;border-radius:inherit;animation:pulse-out 2.5s ease-out infinite}
+.cta-btn::after{animation-delay:1.25s}
+@keyframes pulse-out{0%{opacity:.4;transform:scale(1)}100%{opacity:0;transform:scale(1.2)}}
+
+/* FOOTER */
+.footer{text-align:center;padding:40px;font-size:.75rem;color:var(--text-dim);border-top:1px solid rgba(255,255,255,.05)}
+.footer a{color:var(--gold);text-decoration:none}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .srv-grid,.rev-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .nav{padding:16px 20px}
+  .nav-links{display:none}
+  .about-grid{grid-template-columns:1fr;gap:32px}
+  .about-img img{height:300px}
+  .srv-grid,.rev-grid{grid-template-columns:1fr}
+  .map-content{grid-template-columns:1fr}
+  .map-info{padding:48px 24px}
+  .map-frame{min-height:300px}
+  .about-stat{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="nav-logo">{{NAME_SHORT}}</a>
+  <ul class="nav-links">
+    <li><a href="#hakkinda">Hakkımızda</a></li>
+    <li><a href="#hizmetler">Hizmetler</a></li>
+    <li><a href="#yorumlar">Yorumlar</a></li>
+    <li><a href="#iletisim">İletişim</a></li>
+  </ul>
+  <a href="#iletisim" class="nav-cta"><span>Randevu Al</span></a>
+</nav>
+
+<!-- HERO with Aurora + Meteors -->
+<section class="hero">
+  <div class="hero-aurora"></div>
+  <div class="meteor" style="left:12%;--d:4.2s;animation-delay:0s"></div>
+  <div class="meteor" style="left:30%;--d:5.5s;animation-delay:1.8s"></div>
+  <div class="meteor" style="left:55%;--d:4.8s;animation-delay:3.2s"></div>
+  <div class="meteor" style="left:78%;--d:5s;animation-delay:0.7s"></div>
+  <div class="meteor" style="left:92%;--d:6s;animation-delay:2.5s"></div>
+  <div class="hero-content">
+    <div class="hero-label">Premium Güzellik Deneyimi</div>
+    <h1>{{NAME}}</h1>
+    <p class="hero-sub">{{SLOGAN}}</p>
+    <div class="hero-rating">
+      <span class="stars">{{STARS_EMOJI}}</span>
+      <span>{{RATING}}/5 · {{REVIEWS}} Google Yorumu</span>
+    </div>
+    <a href="#iletisim" class="hero-cta">Randevu Al</a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section about" id="hakkinda">
+  <div class="section-label">Hakkımızda</div>
+  <div class="about-grid">
+    <div class="about-img sr">
+      <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=600&fit=crop" alt="{{NAME}}" loading="lazy">
+    </div>
+    <div class="about-text sr sr-d2">
+      <h3>{{ABOUT_TITLE}}</h3>
+      <p>{{ABOUT_TEXT}}</p>
+      <div class="about-stat">
+        <div class="about-stat-item">
+          <div class="about-stat-num">{{RATING}}</div>
+          <div class="about-stat-label">Google Puan</div>
+        </div>
+        <div class="about-stat-item">
+          <div class="about-stat-num">{{REVIEWS}}+</div>
+          <div class="about-stat-label">Yorum</div>
+        </div>
+        <div class="about-stat-item">
+          <div class="about-stat-num">6</div>
+          <div class="about-stat-label">Hizmet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="hizmetler">
+  <div class="section-label">Hizmetlerimiz</div>
+  <div class="section-title">Uzman Dokunuşlar</div>
+  <div class="section-sub">Her detayı özenle tasarlanmış premium güzellik deneyimi.</div>
+  <div class="srv-grid">
+    <div class="srv-card sr"><div class="srv-icon">✨</div><h3>{{SRV1}}</h3><p>Profesyonel bakım ve uygulama</p></div>
+    <div class="srv-card sr sr-d1"><div class="srv-icon">💎</div><h3>{{SRV2}}</h3><p>Profesyonel bakım ve uygulama</p></div>
+    <div class="srv-card sr sr-d2"><div class="srv-icon">🌸</div><h3>{{SRV3}}</h3><p>Profesyonel bakım ve uygulama</p></div>
+    <div class="srv-card sr sr-d3"><div class="srv-icon">💅</div><h3>{{SRV4}}</h3><p>Profesyonel bakım ve uygulama</p></div>
+    <div class="srv-card sr sr-d4"><div class="srv-icon">🧖</div><h3>{{SRV5}}</h3><p>Profesyonel bakım ve uygulama</p></div>
+    <div class="srv-card sr"><div class="srv-icon">💆</div><h3>{{SRV6}}</h3><p>Profesyonel bakım ve uygulama</p></div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section reviews" id="yorumlar">
+  <div class="section-label">Müşteri Deneyimleri</div>
+  <div class="section-title">Güvene Dayalı Güzellik</div>
+  <div class="section-sub">{{REVIEWS}}+ mutlu müşterimizin görüşleri</div>
+  <div class="rev-grid">
+    <div class="rev-card sr">
+      <div class="rev-stars">★★★★★</div>
+      <p class="rev-text">"{{REV1}}"</p>
+      <div class="rev-line"></div>
+      <div class="rev-author">Mutlu Müşteri</div>
+    </div>
+    <div class="rev-card sr sr-d1">
+      <div class="rev-stars">★★★★★</div>
+      <p class="rev-text">"{{REV2}}"</p>
+      <div class="rev-line"></div>
+      <div class="rev-author">Mutlu Müşteri</div>
+    </div>
+    <div class="rev-card sr sr-d2">
+      <div class="rev-stars">★★★★★</div>
+      <p class="rev-text">"{{REV3}}"</p>
+      <div class="rev-line"></div>
+      <div class="rev-author">Mutlu Müşteri</div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="map-section">
+  <div class="map-content">
+    <div class="map-info sr">
+      <h2>Bize Ulaşın</h2>
+      <div class="map-detail">
+        <div class="map-detail-icon">📍</div>
+        <span>{{ADDR}}</span>
+      </div>
+      <div class="map-detail">
+        <div class="map-detail-icon">📞</div>
+        <a href="tel:{{PHONE}}">{{PHONE}}</a>
+      </div>
+      <div class="map-detail">
+        <div class="map-detail-icon">⭐</div>
+        <span>Google'da {{RATING}}/5 · {{REVIEWS}} yorum</span>
+      </div>
+    </div>
+    <div class="map-frame">
+      <iframe src="https://www.google.com/maps?q={{MAP_QUERY}}&output=embed" allowfullscreen loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="iletisim">
+  <h2>Güzelliğinize Değer Katın</h2>
+  <p>Hemen randevu alın, premium deneyimi yaşayın.</p>
+  <a href="tel:{{PHONE}}" class="cta-phone">{{PHONE}}</a><br><br>
+  <a href="tel:{{PHONE}}" class="cta-btn">Hemen Arayın</a>
+</section>
+
+<div class="footer">
+  <p>Bu site <strong>{{NAME}}</strong> için özel olarak tasarlanmıştır · <a href="#">CrewOps AI</a></p>
+</div>
+
+<script>
+// Scroll nav
+window.addEventListener('scroll',()=>{
+  document.querySelector('.nav').classList.toggle('scrolled',window.scrollY>80)
+});
+
+// Scroll reveal
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');obs.unobserve(e.target)}})
+},{threshold:.1});
+document.querySelectorAll('.sr').forEach(el=>obs.observe(el));
+
+// Magic card mouse tracking
+document.querySelectorAll('.srv-card').forEach(c=>{
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx',(e.clientX-r.left)+'px');
+    c.style.setProperty('--my',(e.clientY-r.top)+'px');
+  });
+});
+</script>
+</body>
+</html>

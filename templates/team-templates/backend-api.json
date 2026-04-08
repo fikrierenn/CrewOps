@@ -1,0 +1,23 @@
+{
+  "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "name": "Backend API",
+  "domain": "software",
+  "description": "Backend odaklı API geliştirme takımı. Veritabanı, QA ve DevOps dahil.",
+  "defaultOutputType": "codePatch",
+  "governance": {
+    "requireAgreement": true,
+    "requirePlanApproval": true,
+    "requireHumanReview": true,
+    "hasQaPhase": true,
+    "hasStagingGate": true,
+    "hasProductionGate": true
+  },
+  "roles": [
+    { "roleId": "pm", "displayName": "Product Manager", "modelTier": "critical", "isRequired": true },
+    { "roleId": "architect", "displayName": "Architect", "modelTier": "critical", "isRequired": true },
+    { "roleId": "backend", "displayName": "Backend Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "sql", "displayName": "SQL Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "qa", "displayName": "QA Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "devops", "displayName": "DevOps Engineer", "modelTier": "complex", "isRequired": false }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+  "name": "Data Analytics",
+  "domain": "analytics",
+  "description": "Veri analizi, raporlama ve g\u00f6rselle\u015ftirme tak\u0131m\u0131.",
+  "defaultOutputType": "analysis",
+  "governance": {
+    "requireAgreement": true,
+    "requirePlanApproval": true,
+    "requireHumanReview": true,
+    "hasQaPhase": false,
+    "hasStagingGate": false,
+    "hasProductionGate": false
+  },
+  "roles": [
+    { "roleId": "pm", "displayName": "Product Manager", "modelTier": "critical", "isRequired": true },
+    { "roleId": "data-analyst", "displayName": "Veri Analisti", "modelTier": "complex", "isRequired": true },
+    { "roleId": "sql", "displayName": "SQL Engineer", "modelTier": "complex", "isRequired": true },
+    { "roleId": "visualization-specialist", "displayName": "G\u00f6rselle\u015ftirme Uzman\u0131", "modelTier": "operational", "isRequired": false }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "development-team",
+  "version": "1.0.0",
+  "description": "Geliştirme takımı agent'ları: backend, frontend, fullstack, DevOps, test, mimari, CLI/UI. Kaynak: davila7/claude-code-templates development-team.",
+  "author": { "name": "davila7/claude-code-templates", "url": "https://github.com/davila7/claude-code-templates" },
+  "license": "MIT"
+}

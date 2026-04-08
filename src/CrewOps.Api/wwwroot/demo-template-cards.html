@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{NAME}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c1:{{C1}};--c2:{{C2}};--c3:{{C3}};
+  --font-display:'Instrument Serif',Georgia,serif;
+  --font-body:'Sora',system-ui,sans-serif;
+  --bg:#f8f8f8;--white:#fff;--dark:#111;--gray:#6b7280;--light:#f0f0ee;
+  --border:#e5e5e0;--radius:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);color:var(--dark);background:var(--bg);line-height:1.7;overflow-x:hidden}
+img{max-width:100%;display:block}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:12px 32px;display:flex;justify-content:space-between;align-items:center;background:rgba(248,248,248,.85);backdrop-filter:blur(16px)}
+.nav-logo{font-family:var(--font-display);font-size:1.3rem;color:var(--dark);text-decoration:none}
+.nav-cta{padding:10px 24px;background:var(--dark);color:var(--white);font-size:.8rem;font-weight:500;text-decoration:none;border-radius:10px;transition:all .3s}
+.nav-cta:hover{background:var(--c1)}
+
+/* HERO — Giant magic card */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 32px 60px}
+.hero-card{position:relative;width:100%;max-width:1000px;border-radius:28px;overflow:hidden;background:var(--dark);color:var(--white);padding:80px 64px;min-height:500px;display:flex;flex-direction:column;justify-content:center}
+/* Magic card mouse gradient */
+.hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%),rgba({{RGB1}},.15),transparent 50%);opacity:0;transition:opacity .4s;pointer-events:none}
+.hero-card:hover::before{opacity:1}
+.hero-card::after{content:'';position:absolute;inset:0;background:url('{{HERO_IMG}}') center/cover;opacity:.15;pointer-events:none}
+.hero-content{position:relative;z-index:1}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);padding:8px 18px;border-radius:12px;font-size:.8rem;margin-bottom:28px}
+.hero-badge .stars{color:#fbbf24;letter-spacing:2px}
+.hero h1{font-family:var(--font-display);font-size:clamp(3rem,7vw,5rem);font-weight:400;font-style:italic;line-height:1.1;margin-bottom:20px}
+.hero-sub{font-size:1.1rem;opacity:.7;font-weight:300;max-width:500px;margin-bottom:32px}
+.hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+.btn-w{display:inline-block;padding:14px 36px;background:var(--white);color:var(--dark);font-weight:600;font-size:.85rem;text-decoration:none;border-radius:12px;transition:all .3s}
+.btn-w:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.btn-ghost{display:inline-block;padding:14px 36px;border:1px solid rgba(255,255,255,.2);color:var(--white);font-weight:400;font-size:.85rem;text-decoration:none;border-radius:12px;transition:all .3s}
+.btn-ghost:hover{background:rgba(255,255,255,.06)}
+
+/* Scroll reveal */
+.sr{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.sr.v{opacity:1;transform:translateY(0)}
+.sr-d1{transition-delay:.1s}.sr-d2{transition-delay:.2s}.sr-d3{transition-delay:.3s}.sr-d4{transition-delay:.4s}
+
+/* SECTION */
+.section{padding:80px 32px;max-width:1100px;margin:0 auto}
+.section-label{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--gray);margin-bottom:8px;text-align:center}
+.section-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,2.8rem);text-align:center;margin-bottom:12px;font-style:italic;font-weight:400}
+.section-sub{text-align:center;color:var(--gray);font-size:.95rem;max-width:460px;margin:0 auto 48px;font-weight:300}
+
+/* ABOUT — Two cards side by side */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin:0 auto}
+.about-card{background:var(--white);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.about-card img{width:100%;height:320px;object-fit:cover}
+.about-card-body{padding:32px}
+.about-card-body h3{font-family:var(--font-display);font-size:1.5rem;font-style:italic;margin-bottom:12px}
+.about-card-body p{color:var(--gray);font-weight:300;font-size:.95rem}
+.about-stats-card{display:flex;gap:20px;padding:32px}
+.about-stat{flex:1;text-align:center;background:var(--light);border-radius:14px;padding:20px 12px}
+.about-stat-num{font-family:var(--font-display);font-size:2rem;color:var(--c1)}
+.about-stat-label{font-size:.7rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* SERVICES — Interactive cards with hover flip */
+.srv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1000px;margin:0 auto}
+.srv-card{position:relative;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:32px 24px;text-align:center;cursor:pointer;transition:all .3s;overflow:hidden}
+/* Magic card effect */
+.srv-card::before{content:'';position:absolute;inset:0;background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%),rgba({{RGB1}},.06),transparent 50%);opacity:0;transition:opacity .3s;pointer-events:none}
+.srv-card:hover{transform:translateY(-6px);border-color:var(--c1);box-shadow:0 12px 32px rgba(0,0,0,.06)}
+.srv-card:hover::before{opacity:1}
+.srv-emoji{font-size:2.5rem;margin-bottom:12px;transition:transform .3s}
+.srv-card:hover .srv-emoji{transform:scale(1.2) rotate(-5deg)}
+.srv-card h3{font-family:var(--font-display);font-size:1.15rem;font-style:italic;margin-bottom:6px}
+.srv-card p{color:var(--gray);font-size:.8rem;font-weight:300}
+
+/* REVIEWS — Carousel-style horizontal scroll */
+.rev-track-wrap{overflow:hidden;max-width:1100px;margin:0 auto;
+  mask-image:linear-gradient(to right,transparent,black 5%,black 95%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,black 5%,black 95%,transparent)}
+.rev-track{display:flex;gap:16px;animation:revScroll 25s linear infinite;width:max-content}
+.rev-track:hover{animation-play-state:paused}
+.rev-card{flex-shrink:0;width:320px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.rev-stars{color:#fbbf24;letter-spacing:2px;margin-bottom:10px;font-size:.9rem}
+.rev-text{color:var(--gray);font-style:italic;font-size:.9rem;line-height:1.7;margin-bottom:12px;font-weight:300}
+.rev-author{font-weight:600;font-size:.8rem}
+@keyframes revScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* MAP */
+.map-wrap{max-width:1000px;margin:0 auto;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr}
+.map-info{padding:48px 36px;background:var(--white);display:flex;flex-direction:column;justify-content:center}
+.map-info h2{font-family:var(--font-display);font-size:1.8rem;font-style:italic;margin-bottom:20px}
+.map-detail{margin-bottom:10px;color:var(--gray);font-size:.95rem}
+.map-detail a{color:var(--c1);text-decoration:none;font-weight:500}
+.map-frame iframe{width:100%;height:100%;border:0;min-height:350px}
+
+/* CTA — Card style */
+.cta-card{max-width:800px;margin:0 auto;background:var(--dark);color:var(--white);border-radius:28px;padding:72px 48px;text-align:center;position:relative;overflow:hidden}
+.cta-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba({{RGB1}},.15),transparent 50%);pointer-events:none}
+.cta-card h2{font-family:var(--font-display);font-size:clamp(2rem,5vw,3rem);font-style:italic;margin-bottom:12px;position:relative}
+.cta-card p{opacity:.7;margin-bottom:32px;font-weight:300;position:relative}
+.cta-phone{display:block;font-family:var(--font-display);font-size:2.2rem;color:var(--white);text-decoration:none;margin-bottom:28px;position:relative}
+.cta-btn-w{display:inline-block;padding:16px 48px;background:var(--white);color:var(--dark);font-weight:600;font-size:.85rem;text-decoration:none;border-radius:12px;transition:all .3s;position:relative}
+.cta-btn-w:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.3)}
+
+.footer{text-align:center;padding:40px;font-size:.75rem;color:var(--gray)}
+.footer a{color:var(--c1);text-decoration:none}
+
+@media(max-width:1024px){.srv-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .nav{padding:12px 20px}
+  .hero{padding:80px 16px 40px}
+  .hero-card{padding:48px 24px;min-height:auto}
+  .about-grid{grid-template-columns:1fr}
+  .about-stats-card{flex-wrap:wrap}
+  .srv-grid{grid-template-columns:1fr}
+  .map-wrap{grid-template-columns:1fr}
+  .map-info{padding:32px 24px}
+  .cta-card{padding:48px 24px;border-radius:20px}
+  .section{padding:60px 20px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="nav-logo">{{NAME_SHORT}}</a>
+  <a href="#iletisim" class="nav-cta">Randevu Al</a>
+</nav>
+
+<!-- HERO — Magic Card -->
+<section class="hero">
+  <div class="hero-card" id="heroCard">
+    <div class="hero-content">
+      <div class="hero-badge"><span class="stars">{{STARS_EMOJI}}</span><span>{{RATING}}/5 · {{REVIEWS}} yorum</span></div>
+      <h1>{{NAME}}</h1>
+      <p class="hero-sub">{{SLOGAN}}</p>
+      <div class="hero-btns">
+        <a href="#iletisim" class="btn-w">Randevu Al</a>
+        <a href="#hizmetler" class="btn-ghost">Hizmetler</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="hakkinda">
+  <div class="section-label">Hakkımızda</div>
+  <div class="section-title">Hikayemiz</div>
+  <div class="about-grid">
+    <div class="about-card sr">
+      <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=500&fit=crop" alt="{{NAME}}" loading="lazy">
+      <div class="about-card-body">
+        <h3>{{ABOUT_TITLE}}</h3>
+        <p>{{ABOUT_TEXT}}</p>
+      </div>
+    </div>
+    <div class="about-card sr sr-d1">
+      <div class="about-stats-card">
+        <div class="about-stat"><div class="about-stat-num">{{RATING}}</div><div class="about-stat-label">Puan</div></div>
+        <div class="about-stat"><div class="about-stat-num">{{REVIEWS}}+</div><div class="about-stat-label">Yorum</div></div>
+        <div class="about-stat"><div class="about-stat-num">6</div><div class="about-stat-label">Hizmet</div></div>
+      </div>
+      <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&h=400&fit=crop" alt="Hizmet" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="hizmetler">
+  <div class="section-label">Hizmetler</div>
+  <div class="section-title">Uzman Dokunuşlar</div>
+  <div class="section-sub">Her detayda özen.</div>
+  <div class="srv-grid">
+    <div class="srv-card sr"><div class="srv-emoji">✨</div><h3>{{SRV1}}</h3><p>Profesyonel bakım</p></div>
+    <div class="srv-card sr sr-d1"><div class="srv-emoji">💎</div><h3>{{SRV2}}</h3><p>Profesyonel bakım</p></div>
+    <div class="srv-card sr sr-d2"><div class="srv-emoji">🌸</div><h3>{{SRV3}}</h3><p>Profesyonel bakım</p></div>
+    <div class="srv-card sr sr-d3"><div class="srv-emoji">💅</div><h3>{{SRV4}}</h3><p>Profesyonel bakım</p></div>
+    <div class="srv-card sr sr-d4"><div class="srv-emoji">🧖</div><h3>{{SRV5}}</h3><p>Profesyonel bakım</p></div>
+    <div class="srv-card sr"><div class="srv-emoji">💆</div><h3>{{SRV6}}</h3><p>Profesyonel bakım</p></div>
+  </div>
+</section>
+
+<!-- REVIEWS — Auto-scrolling marquee -->
+<section class="section" id="yorumlar">
+  <div class="section-label">Yorumlar</div>
+  <div class="section-title">Müşterilerimiz</div>
+  <div class="section-sub">{{REVIEWS}}+ Google değerlendirmesi</div>
+  <div class="rev-track-wrap">
+    <div class="rev-track">
+      <div class="rev-card"><div class="rev-stars">★★★★★</div><p class="rev-text">"{{REV1}}"</p><div class="rev-author">— Mutlu Müşteri</div></div>
+      <div class="rev-card"><div class="rev-stars">★★★★★</div><p class="rev-text">"{{REV2}}"</p><div class="rev-author">— Mutlu Müşteri</div></div>
+      <div class="rev-card"><div class="rev-stars">★★★★★</div><p class="rev-text">"{{REV3}}"</p><div class="rev-author">— Mutlu Müşteri</div></div>
+      <!-- Duplicated for seamless loop -->
+      <div class="rev-card"><div class="rev-stars">★★★★★</div><p class="rev-text">"{{REV1}}"</p><div class="rev-author">— Mutlu Müşteri</div></div>
+      <div class="rev-card"><div class="rev-stars">★★★★★</div><p class="rev-text">"{{REV2}}"</p><div class="rev-author">— Mutlu Müşteri</div></div>
+      <div class="rev-card"><div class="rev-stars">★★★★★</div><p class="rev-text">"{{REV3}}"</p><div class="rev-author">— Mutlu Müşteri</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="section">
+  <div class="map-wrap sr">
+    <div class="map-info">
+      <h2>Bize Ulaşın</h2>
+      <p class="map-detail">📍 {{ADDR}}</p>
+      <p class="map-detail">📞 <a href="tel:{{PHONE}}">{{PHONE}}</a></p>
+      <p class="map-detail">⭐ Google'da {{RATING}}/5</p>
+    </div>
+    <div class="map-frame"><iframe src="https://www.google.com/maps?q={{MAP_QUERY}}&output=embed" allowfullscreen loading="lazy"></iframe></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" id="iletisim">
+  <div class="cta-card">
+    <h2>Güzelliğinize Yatırım Yapın</h2>
+    <p>Hemen randevu alın.</p>
+    <a href="tel:{{PHONE}}" class="cta-phone">{{PHONE}}</a>
+    <a href="tel:{{PHONE}}" class="cta-btn-w">Hemen Arayın</a>
+  </div>
+</section>
+
+<div class="footer"><p><strong>{{NAME}}</strong> için hazırlanmıştır · <a href="#">CrewOps AI</a></p></div>
+
+<script>
+// Scroll reveal
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');obs.unobserve(e.target)}})},{threshold:.1});
+document.querySelectorAll('.sr').forEach(el=>obs.observe(el));
+
+// Magic card — hero + service cards
+document.querySelectorAll('.hero-card,.srv-card').forEach(c=>{
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx',(e.clientX-r.left)+'px');
+    c.style.setProperty('--my',(e.clientY-r.top)+'px');
+  });
+});
+</script>
+</body>
+</html>

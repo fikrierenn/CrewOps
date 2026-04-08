@@ -1,0 +1,21 @@
+{
+  "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+  "name": "Marketing Content",
+  "domain": "marketing",
+  "description": "Pazarlama ve i\u00e7erik \u00fcretim tak\u0131m\u0131. SEO uyumlu i\u00e7erik, kampanya metinleri, sosyal medya.",
+  "defaultOutputType": "document",
+  "governance": {
+    "requireAgreement": true,
+    "requirePlanApproval": true,
+    "requireHumanReview": true,
+    "hasQaPhase": false,
+    "hasStagingGate": false,
+    "hasProductionGate": false
+  },
+  "roles": [
+    { "roleId": "pm", "displayName": "Product Manager", "modelTier": "critical", "isRequired": true },
+    { "roleId": "content-strategist", "displayName": "\u0130\u00e7erik Stratejisti", "modelTier": "complex", "isRequired": true },
+    { "roleId": "copywriter", "displayName": "Metin Yazar\u0131", "modelTier": "complex", "isRequired": true },
+    { "roleId": "seo-specialist", "displayName": "SEO Uzman\u0131", "modelTier": "operational", "isRequired": false }
+  ]
+}

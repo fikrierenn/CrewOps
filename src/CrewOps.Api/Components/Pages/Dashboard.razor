@@ -1,0 +1,73 @@
+@page "/"
+@using CrewOps.Domain.Aggregates
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@rendermode InteractiveServer
+
+<h1>Dashboard</h1>
+
+<div class="summary-cards">
+    <div class="card">
+        <h3>Aktif Projeler</h3>
+        <span class="count">@_activeCount</span>
+    </div>
+    <div class="card">
+        <h3>Tamamlanan</h3>
+        <span class="count">@_completedCount</span>
+    </div>
+    <div class="card">
+        <h3>Toplam Proje</h3>
+        <span class="count">@_totalCount</span>
+    </div>
+</div>
+
+<h2>Projeler</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Ad</th>
+            <th>Domain</th>
+            <th>Durum</th>
+            <th>Son Güncelleme</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var project in _projects)
+        {
+            <tr>
+                <td><a href="/project/@project.Id">@project.Name</a></td>
+                <td>@(project.Domain ?? "—")</td>
+                <td><span class="badge badge-@project.State.ToString().ToLower()">@project.State</span></td>
+                <td>@project.UpdatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                <td class="action-links">
+                    <a href="/project/@project.Id/chat">Sohbet</a>
+                    <a href="/project/@project.Id/tasks">Gorevler</a>
+                    <a href="/project/@project.Id/executions">Calismalar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!_projects.Any())
+{
+    <p class="empty-state">Henüz proje bulunmuyor.</p>
+}
+
+@code {
+    private IReadOnlyList<Project> _projects = [];
+    private int _activeCount;
+    private int _completedCount;
+    private int _totalCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _projects = await db.Projects.OrderByDescending(p => p.UpdatedAt).ToListAsync();
+        _totalCount = _projects.Count;
+        _completedCount = _projects.Count(p => p.State == ProjectState.Completed);
+        _activeCount = _totalCount - _completedCount - _projects.Count(p => p.State == ProjectState.Failed);
+    }
+}

@@ -1,0 +1,84 @@
+@page "/project/{ProjectId:guid}/executions"
+@using CrewOps.Domain.Aggregates
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@rendermode InteractiveServer
+
+<h1>Yürütme Zaman Çizelgesi</h1>
+
+@if (_runs.Any())
+{
+    <div class="summary-cards">
+        <div class="card">
+            <h3>Toplam Çalışma</h3>
+            <span class="count">@_runs.Count</span>
+        </div>
+        <div class="card">
+            <h3>Başarılı</h3>
+            <span class="count" style="color: var(--success)">@_runs.Count(r => r.Status == ExecutionStatus.Completed)</span>
+        </div>
+        <div class="card">
+            <h3>Toplam Süre</h3>
+            <span class="count">@(_runs.Sum(r => r.DurationMs) / 1000)s</span>
+        </div>
+    </div>
+}
+
+@foreach (var run in _runs)
+{
+    var task = _tasks.FirstOrDefault(t => t.Id == run.TaskId);
+    <div class="run-card @run.Status.ToString().ToLower()">
+        <div class="run-header" @onclick="() => Toggle(run.Id)">
+            <div class="run-header-left">
+                <span class="run-status-dot status-@run.Status.ToString().ToLower()"></span>
+                <div>
+                    <div class="run-title">@(task?.Title ?? "Görev")</div>
+                    <div class="run-meta">
+                        <span class="role-badge">@run.RoleId</span>
+                        <span>@run.DurationMs ms</span>
+                        <span>Deneme #@run.AttemptNumber</span>
+                    </div>
+                </div>
+            </div>
+            <span class="expand-icon">@(_expanded.Contains(run.Id) ? "▾" : "▸")</span>
+        </div>
+
+        @if (_expanded.Contains(run.Id))
+        {
+            <div class="run-output">
+                <pre>@(run.RawOutput ?? run.ErrorMessage ?? "Çıktı yok")</pre>
+            </div>
+        }
+    </div>
+}
+
+@if (!_runs.Any())
+{
+    <p class="empty-state">Bu projede henüz yürütme kaydı bulunmuyor.</p>
+}
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    private IReadOnlyList<ExecutionRun> _runs = [];
+    private IReadOnlyList<CrewOpsTask> _tasks = [];
+    private HashSet<Guid> _expanded = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _runs = await db.ExecutionRuns
+            .Where(r => r.ProjectId == ProjectId)
+            .OrderByDescending(r => r.StartedAt)
+            .ToListAsync();
+        _tasks = await db.Tasks
+            .Where(t => t.ProjectId == ProjectId)
+            .ToListAsync();
+    }
+
+    private void Toggle(Guid runId)
+    {
+        if (!_expanded.Remove(runId))
+            _expanded.Add(runId);
+    }
+}
