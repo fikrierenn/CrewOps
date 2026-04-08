@@ -1,0 +1,198 @@
+@page "/settings"
+@using CrewOps.Api.Services
+@inject IConfiguration Config
+@inject PmAgentService PmAgent
+@rendermode InteractiveServer
+
+<h1>Ayarlar</h1>
+
+<div class="settings-grid">
+    <!-- LLM Provider Durumu -->
+    <div class="settings-card">
+        <h2>LLM Provider Durumu</h2>
+        <p class="card-desc">Aktif LLM provider'lar ve bağlantı durumları</p>
+
+        <div class="provider-list">
+            @foreach (var p in _providers)
+            {
+                <div class="provider-row">
+                    <div class="provider-info">
+                        <span class="provider-icon">@p.Icon</span>
+                        <div>
+                            <div class="provider-name">@p.Name</div>
+                            <div class="provider-model">@p.Model</div>
+                        </div>
+                    </div>
+                    <div class="provider-status">
+                        @if (p.IsConfigured)
+                        {
+                            <span class="status-badge status-ok">✓ Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-off">✗ Key Yok</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="provider-chain">
+            <strong>Aktif Chain:</strong>
+            <span class="chain-text">@PmAgent.ActiveProvider</span>
+        </div>
+
+        <div class="provider-routing">
+            <div class="routing-row">
+                <span class="routing-label">🔍 Web Search (lead bulma):</span>
+                <span class="routing-value">Gemini önce → Claude fallback</span>
+            </div>
+            <div class="routing-row">
+                <span class="routing-label">📝 Content (plan, mesaj):</span>
+                <span class="routing-value">Groq önce → Gemini → Claude</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Veritabanı Durumu -->
+    <div class="settings-card">
+        <h2>Veritabani</h2>
+        <p class="card-desc">SQL Server bağlantı bilgileri ve durum</p>
+
+        <div class="db-info">
+            <div class="db-row">
+                <span class="db-label">Server</span>
+                <span>@_dbServer</span>
+            </div>
+            <div class="db-row">
+                <span class="db-label">Database</span>
+                <span>@_dbName</span>
+            </div>
+            <div class="db-row">
+                <span class="db-label">Durum</span>
+                <span class="status-badge status-ok">Bağlı</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sistem Bilgileri -->
+    <div class="settings-card">
+        <h2>Sistem</h2>
+        <p class="card-desc">Uygulama ve ortam bilgileri</p>
+
+        <div class="sys-info">
+            <div class="sys-row"><span class="sys-label">Runtime</span><span>.NET @Environment.Version</span></div>
+            <div class="sys-row"><span class="sys-label">OS</span><span>@System.Runtime.InteropServices.RuntimeInformation.OSDescription</span></div>
+            <div class="sys-row"><span class="sys-label">Ortam</span><span>@_environment</span></div>
+            <div class="sys-row"><span class="sys-label">Skill Sayısı</span><span>147</span></div>
+            <div class="sys-row"><span class="sys-label">Agent Sayısı</span><span>112</span></div>
+            <div class="sys-row"><span class="sys-label">Plugin Sayısı</span><span>74</span></div>
+        </div>
+    </div>
+
+    <!-- API Endpoints -->
+    <div class="settings-card full-width">
+        <h2>API Endpoints</h2>
+        <p class="card-desc">Mevcut REST API endpoint'leri</p>
+
+        <div class="endpoint-list">
+            @foreach (var ep in _endpoints)
+            {
+                <div class="endpoint-row">
+                    <span class="endpoint-method method-@ep.Method.ToLower()">@ep.Method</span>
+                    <span class="endpoint-path">@ep.Path</span>
+                    <span class="endpoint-desc">@ep.Description</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+.settings-card.full-width { grid-column: 1 / -1; }
+.settings-card h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.card-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+
+.provider-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.provider-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--surface-2); border-radius: 8px; }
+.provider-info { display: flex; align-items: center; gap: 10px; }
+.provider-icon { font-size: 20px; }
+.provider-name { font-weight: 600; font-size: 14px; }
+.provider-model { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+.status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.status-ok { background: var(--success-bg); color: var(--success); }
+.status-off { background: rgba(255,255,255,.05); color: var(--text-muted); }
+
+.provider-chain { padding: 12px; background: var(--accent-bg); border-radius: 8px; margin-bottom: 12px; font-size: 13px; }
+.chain-text { color: var(--accent-light); font-family: var(--mono); }
+.provider-routing { display: flex; flex-direction: column; gap: 6px; }
+.routing-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+.routing-label { color: var(--text-muted); }
+.routing-value { color: var(--text-secondary); font-family: var(--mono); font-size: 11px; }
+
+.db-info, .sys-info { display: flex; flex-direction: column; gap: 8px; }
+.db-row, .sys-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.db-label, .sys-label { color: var(--text-muted); }
+
+.endpoint-list { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow-y: auto; }
+.endpoint-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; font-size: 12px; }
+.endpoint-row:hover { background: var(--surface-2); }
+.endpoint-method { padding: 2px 8px; border-radius: 4px; font-family: var(--mono); font-size: 10px; font-weight: 700; min-width: 50px; text-align: center; }
+.method-get { background: rgba(96,165,250,.15); color: var(--info); }
+.method-post { background: rgba(52,211,153,.15); color: var(--success); }
+.method-put { background: rgba(251,191,36,.15); color: var(--warning); }
+.method-delete { background: rgba(248,113,113,.15); color: var(--danger); }
+.endpoint-path { font-family: var(--mono); color: var(--text); min-width: 280px; }
+.endpoint-desc { color: var(--text-muted); }
+</style>
+
+@code {
+    private List<ProviderInfo> _providers = [];
+    private string _dbServer = "";
+    private string _dbName = "";
+    private string _environment = "";
+
+    private static readonly List<EndpointInfo> _endpoints =
+    [
+        new("GET", "/api/health", "Sağlık kontrolü"),
+        new("GET", "/api/projects", "Proje listesi"),
+        new("POST", "/api/projects/universal", "Yeni proje oluştur"),
+        new("POST", "/api/projects/{id}/chat", "PM'e mesaj gönder"),
+        new("GET", "/api/projects/{id}/chat", "Chat history"),
+        new("PUT", "/api/projects/{id}/team-template", "Team template ata"),
+        new("POST", "/api/projects/{id}/transition", "State geçişi"),
+        new("DELETE", "/api/projects/cleanup", "Tüm verileri temizle"),
+        new("GET", "/api/projects/{id}/tasks", "Görev listesi"),
+        new("GET", "/api/projects/{id}/runs", "Execution run'lar"),
+        new("GET", "/api/projects/{id}/timeline", "Audit timeline"),
+        new("POST", "/api/orchestration/{id}/start", "Orkestrasyon başlat"),
+        new("POST", "/api/orchestration/{id}/verify-leads", "Lead doğrulama"),
+        new("POST", "/api/orchestration/{id}/generate-demos", "Demo site oluştur"),
+        new("GET", "/api/demo-templates/preview", "Template önizleme"),
+        new("GET", "/api/team-templates", "Takım şablonları"),
+        new("GET", "/api/roles", "Roller"),
+        new("GET", "/api/skills", "Skill listesi (147)"),
+        new("GET", "/api/domains", "Domain'ler"),
+    ];
+
+    protected override void OnInitialized()
+    {
+        _providers =
+        [
+            new("🟣", "Groq", Config["Groq:Model"] ?? "llama-3.3-70b-versatile", !string.IsNullOrWhiteSpace(Config["Groq:ApiKey"])),
+            new("🔵", "Gemini", Config["Gemini:Model"] ?? "gemini-2.5-flash", !string.IsNullOrWhiteSpace(Config["Gemini:ApiKey"])),
+            new("🟠", "Claude", Config["Anthropic:Model"] ?? "claude-sonnet-4-20250514", !string.IsNullOrWhiteSpace(Config["Anthropic:ApiKey"])),
+            new("⚪", "OpenAI", Config["OpenAI:Model"] ?? "gpt-4o-mini", !string.IsNullOrWhiteSpace(Config["OpenAI:ApiKey"])),
+        ];
+
+        var connStr = Config.GetConnectionString("CrewOps") ?? "";
+        _dbServer = System.Text.RegularExpressions.Regex.Match(connStr, @"Server=([^;]+)").Groups[1].Value;
+        _dbName = System.Text.RegularExpressions.Regex.Match(connStr, @"Database=([^;]+)").Groups[1].Value;
+        _environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+    }
+
+    private sealed record ProviderInfo(string Icon, string Name, string Model, bool IsConfigured);
+    private sealed record EndpointInfo(string Method, string Path, string Description);
+}

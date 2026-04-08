@@ -1,5 +1,6 @@
 @page "/"
 @using CrewOps.Domain.Aggregates
+@using CrewOps.Domain.Entities
 @using CrewOps.Infrastructure.Persistence
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<CrewOpsDbContext> DbFactory
@@ -9,16 +10,24 @@
 
 <div class="summary-cards">
     <div class="card">
-        <h3>Aktif Projeler</h3>
-        <span class="count">@_activeCount</span>
+        <div class="card-value">@_totalProjects</div>
+        <div class="card-label">Toplam Proje</div>
     </div>
-    <div class="card">
-        <h3>Tamamlanan</h3>
-        <span class="count">@_completedCount</span>
+    <div class="card card-accent">
+        <div class="card-value">@_activeCount</div>
+        <div class="card-label">Aktif</div>
     </div>
-    <div class="card">
-        <h3>Toplam Proje</h3>
-        <span class="count">@_totalCount</span>
+    <div class="card card-success">
+        <div class="card-value">@_totalLeads</div>
+        <div class="card-label">Toplam Lead</div>
+    </div>
+    <div class="card card-info">
+        <div class="card-value">@_totalDemos</div>
+        <div class="card-label">Demo Site</div>
+    </div>
+    <div class="card card-warning">
+        <div class="card-value">@_noSiteLeads</div>
+        <div class="card-label">Sitesiz (Hedef)</div>
     </div>
 </div>
 
@@ -27,24 +36,37 @@
     <thead>
         <tr>
             <th>Ad</th>
-            <th>Domain</th>
+            <th>Sektör</th>
             <th>Durum</th>
+            <th>Lead</th>
+            <th>Demo</th>
             <th>Son Güncelleme</th>
             <th>İşlemler</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var project in _projects)
+        @foreach (var p in _projectStats)
         {
             <tr>
-                <td><a href="/project/@project.Id">@project.Name</a></td>
-                <td>@(project.Domain ?? "—")</td>
-                <td><span class="badge badge-@project.State.ToString().ToLower()">@project.State</span></td>
-                <td>@project.UpdatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                <td><a href="/project/@p.Project.Id">@p.Project.Name</a></td>
+                <td>
+                    @if (!string.IsNullOrEmpty(p.Project.Domain))
+                    {
+                        <span class="domain-tag">@p.Project.Domain</span>
+                    }
+                    else
+                    {
+                        <span class="meta-text">—</span>
+                    }
+                </td>
+                <td><span class="badge badge-@p.Project.State.ToString().ToLower()">@p.Project.State</span></td>
+                <td>@p.LeadCount</td>
+                <td>@p.DemoCount</td>
+                <td>@p.Project.UpdatedAt.ToString("dd.MM HH:mm")</td>
                 <td class="action-links">
-                    <a href="/project/@project.Id/chat">Sohbet</a>
-                    <a href="/project/@project.Id/tasks">Gorevler</a>
-                    <a href="/project/@project.Id/executions">Calismalar</a>
+                    <a href="/project/@p.Project.Id/chat">💬</a>
+                    <a href="/project/@p.Project.Id/leads">👥</a>
+                    <a href="/project/@p.Project.Id/tasks">📋</a>
                 </td>
             </tr>
         }
@@ -53,21 +75,51 @@
 
 @if (!_projects.Any())
 {
-    <p class="empty-state">Henüz proje bulunmuyor.</p>
+    <div class="empty-state">
+        <p>Henüz proje bulunmuyor. <a href="/chat/new">Yeni sohbet başlat</a></p>
+    </div>
 }
+
+<style>
+.summary-cards { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.summary-cards .card { flex: 1; min-width: 120px; padding: 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); text-align: center; }
+.card-value { font-size: 32px; font-weight: 800; }
+.card-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.card-accent .card-value { color: var(--accent-light); }
+.card-success .card-value { color: var(--success); }
+.card-info .card-value { color: var(--info); }
+.card-warning .card-value { color: var(--warning); }
+.domain-tag { background: var(--accent-bg); color: var(--accent-light); padding: 2px 8px; border-radius: 6px; font-size: 11px; }
+.action-links { display: flex; gap: 8px; }
+.action-links a { text-decoration: none; font-size: 16px; opacity: .6; transition: opacity .2s; }
+.action-links a:hover { opacity: 1; }
+</style>
 
 @code {
     private IReadOnlyList<Project> _projects = [];
-    private int _activeCount;
-    private int _completedCount;
-    private int _totalCount;
+    private List<ProjectStat> _projectStats = [];
+    private int _totalProjects, _activeCount, _totalLeads, _totalDemos, _noSiteLeads;
 
     protected override async Task OnInitializedAsync()
     {
         await using var db = await DbFactory.CreateDbContextAsync();
         _projects = await db.Projects.OrderByDescending(p => p.UpdatedAt).ToListAsync();
-        _totalCount = _projects.Count;
-        _completedCount = _projects.Count(p => p.State == ProjectState.Completed);
-        _activeCount = _totalCount - _completedCount - _projects.Count(p => p.State == ProjectState.Failed);
+
+        var leads = await db.Leads.ToListAsync();
+        var leadsByProject = leads.GroupBy(l => l.ProjectId).ToDictionary(g => g.Key, g => g.ToList());
+
+        _totalProjects = _projects.Count;
+        _activeCount = _projects.Count(p => p.State != ProjectState.Completed && p.State != ProjectState.Failed);
+        _totalLeads = leads.Count;
+        _totalDemos = leads.Count(l => l.DemoSiteUrl is not null);
+        _noSiteLeads = leads.Count(l => l.WebsiteStatus == "yok");
+
+        _projectStats = _projects.Select(p =>
+        {
+            var pLeads = leadsByProject.GetValueOrDefault(p.Id, []);
+            return new ProjectStat(p, pLeads.Count, pLeads.Count(l => l.DemoSiteUrl is not null));
+        }).ToList();
     }
+
+    private sealed record ProjectStat(Project Project, int LeadCount, int DemoCount);
 }

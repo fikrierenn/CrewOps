@@ -4,18 +4,31 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Text.Json
 @inject IDbContextFactory<CrewOpsDbContext> DbFactory
+@inject IHttpClientFactory HttpFactory
+@inject NavigationManager Nav
 @rendermode InteractiveServer
 
 <div class="leads-header">
     <h1>Potansiyel Musteriler</h1>
     @if (_leads.Any())
     {
-        <div class="leads-filter">
-            <button class="filter-btn @(_filter == "all" ? "active" : "")" @onclick="FilterAll">Tümü (@_leads.Count)</button>
-            <button class="filter-btn @(_filter == "yok" ? "active" : "")" @onclick="FilterNoSite">Sitesiz (@_leads.Count(l => l.WebsiteStatus == "yok"))</button>
-            <button class="filter-btn @(_filter == "kötü" ? "active" : "")" @onclick="FilterBadSite">Kötü Site (@_leads.Count(l => l.WebsiteStatus == "kötü"))</button>
-            <button class="filter-btn @(_filter == "demo" ? "active" : "")" @onclick="FilterDemo">Demo Hazır (@_leads.Count(l => l.DemoSiteUrl is not null))</button>
+        <div class="leads-toolbar">
+            <div class="leads-filter">
+                <button class="filter-btn @(_filter == "all" ? "active" : "")" @onclick="FilterAll">Tümü (@_leads.Count)</button>
+                <button class="filter-btn @(_filter == "yok" ? "active" : "")" @onclick="FilterNoSite">Sitesiz (@_leads.Count(l => l.WebsiteStatus == "yok"))</button>
+                <button class="filter-btn @(_filter == "kötü" ? "active" : "")" @onclick="FilterBadSite">Kötü Site (@_leads.Count(l => l.WebsiteStatus == "kötü"))</button>
+                <button class="filter-btn @(_filter == "demo" ? "active" : "")" @onclick="FilterDemo">Demo Hazır (@_leads.Count(l => l.DemoSiteUrl is not null))</button>
+            </div>
+            <div class="bulk-actions">
+                <button class="bulk-btn bulk-demo" @onclick="BulkGenerateDemos" disabled="@_isBusy">🎨 Demo Oluştur</button>
+                <button class="bulk-btn bulk-verify" @onclick="BulkVerifyLeads" disabled="@_isBusy">🔍 Doğrula</button>
+                <button class="bulk-btn bulk-export" @onclick="ExportCsv">📋 CSV</button>
+            </div>
         </div>
+        @if (_statusMessage is not null)
+        {
+            <div class="status-bar @(_isError ? "status-error" : "status-success")">@_statusMessage</div>
+        }
     }
 </div>
 
@@ -178,8 +191,18 @@ else
 }
 
 <style>
-.leads-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-.leads-header h1 { font-size: 20px; }
+.leads-header { margin-bottom: 20px; }
+.leads-header h1 { font-size: 20px; margin-bottom: 12px; }
+.leads-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.bulk-actions { display: flex; gap: 6px; }
+.bulk-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all .2s; }
+.bulk-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-light); }
+.bulk-btn:disabled { opacity: .4; cursor: not-allowed; }
+.bulk-demo:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-bg); }
+.bulk-verify:hover:not(:disabled) { border-color: var(--info); background: var(--info-bg); }
+.status-bar { padding: 8px 16px; border-radius: 8px; font-size: 13px; margin-top: 8px; }
+.status-success { background: var(--success-bg); color: var(--success); }
+.status-error { background: var(--danger-bg); color: var(--danger); }
 .leads-filter { display: flex; gap: 6px; }
 .filter-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all .2s; }
 .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent-light); background: var(--accent-bg); }
@@ -248,6 +271,9 @@ else
     private List<Lead> _leads = [];
     private Lead? _selectedLead;
     private string _filter = "all";
+    private bool _isBusy;
+    private string? _statusMessage;
+    private bool _isError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -273,6 +299,60 @@ else
     private void FilterDemo() => SetFilter("demo");
     private void SetFilter(string filter) { _filter = filter; _selectedLead = null; }
     private void SelectLead(Lead lead) => _selectedLead = _selectedLead?.Id == lead.Id ? null : lead;
+
+    private async Task BulkGenerateDemos()
+    {
+        _isBusy = true; _statusMessage = "Demo siteler oluşturuluyor..."; _isError = false;
+        StateHasChanged();
+        try
+        {
+            using var http = HttpFactory.CreateClient();
+            http.BaseAddress = new Uri(Nav.BaseUri);
+            var resp = await http.PostAsync($"api/orchestration/{ProjectId}/generate-demos", null);
+            var body = await resp.Content.ReadAsStringAsync();
+            _statusMessage = resp.IsSuccessStatusCode ? $"✓ {body}" : $"Hata: {body}";
+            _isError = !resp.IsSuccessStatusCode;
+            // Listeyi yenile
+            await ReloadLeads();
+        }
+        catch (Exception ex) { _statusMessage = $"Hata: {ex.Message}"; _isError = true; }
+        finally { _isBusy = false; StateHasChanged(); }
+    }
+
+    private async Task BulkVerifyLeads()
+    {
+        _isBusy = true; _statusMessage = "Lead'ler doğrulanıyor..."; _isError = false;
+        StateHasChanged();
+        try
+        {
+            using var http = HttpFactory.CreateClient();
+            http.BaseAddress = new Uri(Nav.BaseUri);
+            http.Timeout = TimeSpan.FromMinutes(5);
+            var resp = await http.PostAsync($"api/orchestration/{ProjectId}/verify-leads", null);
+            var body = await resp.Content.ReadAsStringAsync();
+            _statusMessage = resp.IsSuccessStatusCode ? $"✓ {body}" : $"Hata: {body}";
+            _isError = !resp.IsSuccessStatusCode;
+            await ReloadLeads();
+        }
+        catch (Exception ex) { _statusMessage = $"Hata: {ex.Message}"; _isError = true; }
+        finally { _isBusy = false; StateHasChanged(); }
+    }
+
+    private void ExportCsv()
+    {
+        var csv = "Ad,Adres,İlçe,Telefon,Puan,Yorum,Site Durumu,SEO Skor,Demo URL\n";
+        foreach (var l in FilteredLeads)
+            csv += $"\"{l.Name}\",\"{l.Address}\",\"{l.District}\",\"{l.Phone}\",{l.GoogleRating},{l.GoogleReviewCount},\"{l.WebsiteStatus}\",{l.SeoScore},\"{l.DemoSiteUrl}\"\n";
+        _statusMessage = $"✓ {FilteredLeads.Count()} lead CSV olarak hazır (konsola yazdırıldı)";
+        _isError = false;
+    }
+
+    private async Task ReloadLeads()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _leads = await db.Leads.Where(l => l.ProjectId == ProjectId)
+            .OrderByDescending(l => l.GoogleRating).ThenByDescending(l => l.GoogleReviewCount).ToListAsync();
+    }
 
     private sealed class SeoReportView
     {
