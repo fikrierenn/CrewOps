@@ -28,7 +28,7 @@ try
         ?? "Server=localhost;Database=CrewOps;Trusted_Connection=True;TrustServerCertificate=True;";
 
     builder.Services.AddDbContextFactory<CrewOpsDbContext>(options =>
-        options.UseSqlServer(connStr), ServiceLifetime.Scoped);
+        options.UseSqlServer(connStr), ServiceLifetime.Singleton);
 
     // Scoped DbContext — factory'den oluşturulur (repository'ler + API için)
     builder.Services.AddScoped(sp =>
