@@ -3,11 +3,11 @@
 @using CrewOps.Api.Services
 @using CrewOps.Domain.Aggregates
 @using Microsoft.JSInterop
-@using CrewOps.Domain.Ports
-@using CrewOps.Domain.StateMachine
+@using CrewOps.Domain.ValueObjects
+@using CrewOps.Infrastructure.Persistence
+@using Microsoft.EntityFrameworkCore
 @inject PmAgentService PmAgent
-@inject IProjectRepository ProjectRepo
-@inject IProjectStateMachine StateMachine
+@inject IDbContextFactory<CrewOpsDbContext> DbFactory
 @inject NavigationManager Nav
 @inject IHttpClientFactory HttpFactory
 @inject IJSRuntime JS
@@ -145,7 +145,8 @@
     {
         if (ProjectId != Guid.Empty)
         {
-            _project = await ProjectRepo.FindByIdAsync(ProjectId);
+            await using var db = await DbFactory.CreateDbContextAsync();
+            _project = await db.Projects.FindAsync(ProjectId);
             _messages = PmAgent.GetHistory(ProjectId).ToList();
         }
     }
@@ -160,13 +161,15 @@
         // Proje yoksa oluştur
         if (_project is null)
         {
+            await using var db = await DbFactory.CreateDbContextAsync();
             _project = Project.CreateUniversal("Yeni Proje", userText);
-            await ProjectRepo.AddAsync(_project);
+            db.Projects.Add(_project);
             ProjectId = _project.Id;
 
-            // New → Discovery
-            StateMachine.Transition(_project, Domain.ValueObjects.ProjectState.Discovery, "system:pm");
-            await ProjectRepo.UpdateAsync(_project);
+            // New → Discovery — domain event'siz direkt state set
+            var stateProp = typeof(Project).GetProperty(nameof(Project.State))!;
+            stateProp.SetValue(_project, ProjectState.Discovery);
+            await db.SaveChangesAsync();
         }
 
         _messages.Add(new ChatMessage("user", userText));
@@ -297,7 +300,14 @@
             }
         }
 
-        if (needsUpdate) await ProjectRepo.UpdateAsync(_project);
+        if (needsUpdate)
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            db.Attach(_project);
+            db.Entry(_project).Property(p => p.Name).IsModified = true;
+            db.Entry(_project).Property(p => p.Domain).IsModified = true;
+            await db.SaveChangesAsync();
+        }
     }
 
     private static string? DetectDomain(string text, string projectName)
