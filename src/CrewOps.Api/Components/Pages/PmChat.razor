@@ -194,11 +194,16 @@
             await ScrollToBottom();
 
             // PM plan sundu mu? Quick action butonlarını göster
-            _showQuickActions = PlanParser.ContainsPlan(response) || response.Contains("onaylıyor musunuz", StringComparison.OrdinalIgnoreCase);
+            _showQuickActions = PlanParser.ContainsPlan(response)
+                || response.Contains("onaylıyor musunuz", StringComparison.OrdinalIgnoreCase)
+                || response.Contains("onaylıyor musun", StringComparison.OrdinalIgnoreCase)
+                || response.Contains("Görevler:", StringComparison.OrdinalIgnoreCase);
+            StateHasChanged();
 
-            // PM onay verdi mi kontrol et — verdiyse orkestrasyon başlat
-            var isApproval = PlanParser.IsApprovalConfirmation(response);
-            if (isApproval)
+            // KULLANICI onay verdi mi kontrol et — kullanıcı mesajı "evet/onayla/başla" ise orkestrasyon başlat
+            var userApproved = IsUserApproval(userText);
+            var historyHasPlan = PmAgent.GetHistory(ProjectId).Any(m => PlanParser.ContainsPlan(m.Content));
+            if (userApproved && historyHasPlan)
             {
                 var history = PmAgent.GetHistory(ProjectId);
                 var parsedTasks = PlanParser.ParsePlan(history);
@@ -339,6 +344,15 @@
         if (combined.Contains("yazılım") || combined.Contains("software") || combined.Contains("web"))
             return "yazılım";
         return null;
+    }
+
+    private static bool IsUserApproval(string text)
+    {
+        var lower = text.ToLowerInvariant().Trim();
+        return lower is "evet" or "evet onayla" or "onayla" or "onaylıyorum" or "tamam" or "ok" or "başla"
+            or "basla" or "hemen başla" or "evet başla" or "evet, onayla" or "evet, başla"
+            || lower.Contains("onayla") || lower.Contains("başlayalım") || lower.Contains("baslayalim")
+            || lower.StartsWith("evet");
     }
 
     private async Task ScrollToBottom()

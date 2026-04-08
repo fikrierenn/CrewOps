@@ -1,9 +1,44 @@
 /* ═══════════════════════════════════════════════════════════════
    CrewOps — AI Takım Orkestratörü
-   Premium Dark Dashboard
+   Light Theme (default) + Dark Theme toggle
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
+    /* Light Theme (default) */
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface-2: #f0f1f5;
+    --surface-3: #e8e9ed;
+    --border: rgba(0,0,0,.08);
+    --border-hover: rgba(0,0,0,.15);
+    --text: #1a1d26;
+    --text-secondary: #5a6078;
+    --text-muted: #8b90a0;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108,92,231,.2);
+    --accent-light: #6c5ce7;
+    --accent-bg: rgba(108,92,231,.06);
+    --success: #059669;
+    --success-bg: rgba(5,150,105,.08);
+    --warning: #d97706;
+    --warning-bg: rgba(217,119,6,.08);
+    --danger: #dc2626;
+    --danger-bg: rgba(220,38,38,.08);
+    --info: #2563eb;
+    --info-bg: rgba(37,99,235,.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+    --shadow: 0 4px 16px rgba(0,0,0,.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.1);
+    --transition: .2s cubic-bezier(.4,0,.2,1);
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* Dark Theme */
+.dark {
     --bg: #08090d;
     --surface: #11131a;
     --surface-2: #181b25;
@@ -25,15 +60,9 @@
     --danger-bg: rgba(248,113,113,.1);
     --info: #60a5fa;
     --info-bg: rgba(96,165,250,.1);
-    --radius: 12px;
-    --radius-sm: 8px;
-    --radius-xs: 6px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
     --shadow: 0 4px 16px rgba(0,0,0,.5);
     --shadow-lg: 0 8px 32px rgba(0,0,0,.6);
-    --transition: .2s cubic-bezier(.4,0,.2,1);
-    --font: 'Inter', system-ui, -apple-system, sans-serif;
-    --mono: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -141,6 +170,21 @@ body {
     gap: 8px;
     font-size: 12px;
     color: var(--text-muted);
+}
+
+.theme-toggle {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all var(--transition);
+}
+.theme-toggle:hover {
+    border-color: var(--accent);
+    background: var(--accent-bg);
 }
 
 .status-dot {
