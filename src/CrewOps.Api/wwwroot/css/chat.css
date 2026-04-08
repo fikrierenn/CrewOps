@@ -310,6 +310,7 @@
     box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
+.chat-input-wrapper input,
 .chat-input-wrapper textarea {
     flex: 1;
     background: transparent;
@@ -320,13 +321,18 @@
     line-height: 1.5;
     resize: none;
     outline: none;
-    padding: 6px 0;
+    padding: 8px 0;
     min-height: 24px;
     max-height: 120px;
 }
 
+.chat-input-wrapper input::placeholder,
 .chat-input-wrapper textarea::placeholder {
     color: var(--text-muted);
+}
+
+.chat-input-area form {
+    display: contents;
 }
 
 .send-btn {

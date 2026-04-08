@@ -108,18 +108,19 @@
     }
 
     <div class="chat-input-area">
-        <div class="chat-input-wrapper">
-            <textarea @bind="_inputText" @bind:event="oninput"
-                      @onkeydown="HandleKeyDown"
-                      placeholder="PM'e mesajınızı yazın... (Enter gönderir, Shift+Enter yeni satır)"
-                      rows="1"
-                      disabled="@_isThinking"></textarea>
-            <button @onclick="SendMessage" disabled="@(_isThinking || string.IsNullOrWhiteSpace(_inputText))" class="send-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-            </button>
-        </div>
+        <form @onsubmit="SendMessage" @onsubmit:preventDefault>
+            <div class="chat-input-wrapper">
+                <input type="text" @bind="_inputText" @bind:event="oninput"
+                       placeholder="PM'e mesajınızı yazın... (Enter ile gönderin)"
+                       disabled="@_isThinking"
+                       autocomplete="off" />
+                <button type="submit" disabled="@(_isThinking || string.IsNullOrWhiteSpace(_inputText))" class="send-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
         <div class="input-hint">
             @if (_project is not null)
             {
