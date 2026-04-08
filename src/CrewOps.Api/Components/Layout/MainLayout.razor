@@ -25,102 +25,234 @@
         </div>
 
         <nav class="nav-section">
-            <p class="nav-label">PM</p>
             <ul class="nav-menu">
                 <li>
                     <a href="/chat/new" class="nav-link">
-                        <span class="nav-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                        </span>
+                        <span class="nav-icon">💬</span>
                         Yeni Sohbet
                     </a>
                 </li>
-            </ul>
-
-            <p class="nav-label">Genel</p>
-            <ul class="nav-menu">
                 <li>
                     <a href="/" class="nav-link">
-                        <span class="nav-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                        </span>
+                        <span class="nav-icon">🏠</span>
                         Dashboard
                     </a>
                 </li>
                 <li>
+                    <a href="/" class="nav-link" @onclick="ToggleProjects" @onclick:preventDefault>
+                        <span class="nav-icon">📁</span>
+                        Projeler
+                        @if (_projects.Any())
+                        {
+                            <span class="nav-badge">@_projects.Count</span>
+                        }
+                    </a>
+                </li>
+                <li>
                     <a href="/analytics" class="nav-link">
-                        <span class="nav-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-                        </span>
+                        <span class="nav-icon">📊</span>
                         Analytics
                     </a>
                 </li>
                 <li>
                     <a href="/demo-preview.html" class="nav-link" target="_blank">
-                        <span class="nav-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                        </span>
+                        <span class="nav-icon">🎨</span>
                         Template'ler
                     </a>
                 </li>
                 <li>
                     <a href="/settings" class="nav-link">
-                        <span class="nav-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                        </span>
+                        <span class="nav-icon">⚙️</span>
                         Ayarlar
                     </a>
                 </li>
             </ul>
-
-            @if (_projects.Any())
-            {
-                <p class="nav-label">Projeler (@_projects.Count)</p>
-                <ul class="nav-menu">
-                    @foreach (var p in _projects.Take(15))
-                    {
-                        <li class="project-item">
-                            <a href="/project/@p.Id" class="nav-link project-link">
-                                <span class="project-dot state-@p.State.ToString().ToLower()"></span>
-                                <div class="project-info">
-                                    <span class="project-name">@Truncate(p.Name, 22)</span>
-                                    @if (!string.IsNullOrEmpty(p.Domain))
-                                    {
-                                        <span class="project-domain">@p.Domain</span>
-                                    }
-                                </div>
-                            </a>
-                            <div class="project-actions">
-                                <a href="/project/@p.Id/chat" class="sub-link" title="Sohbet">💬 Sohbet</a>
-                                <a href="/project/@p.Id/leads" class="sub-link" title="Leads">👥 Leads</a>
-                                <a href="/project/@p.Id/tasks" class="sub-link" title="Görevler">📋 Görevler</a>
-                                <a href="/project/@p.Id/executions" class="sub-link" title="Çalışmalar">⚡ Çalışma</a>
-                                <a href="/project/@p.Id/activity" class="sub-link" title="Aktivite">📊 Aktivite</a>
-                            </div>
-                        </li>
-                    }
-                </ul>
-            }
         </nav>
 
         <div class="sidebar-footer">
             <div class="status-dot"></div>
             <span>Sistem Aktif</span>
-            <button class="theme-toggle" onclick="document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');" title="Tema değiştir">
-                🌓
-            </button>
         </div>
     </aside>
 
     <main class="content">
+        @if (_showProjects)
+        {
+            <div class="projects-overlay" @onclick="ToggleProjects">
+                <div class="projects-panel" @onclick:stopPropagation>
+                    <div class="panel-header">
+                        <h2>Projeler (@_projects.Count)</h2>
+                        <button class="panel-close" @onclick="ToggleProjects">✕</button>
+                    </div>
+                    @if (_projects.Any())
+                    {
+                        <div class="project-list">
+                            @foreach (var p in _projects)
+                            {
+                                <a href="/project/@p.Id" class="project-card" @onclick="ToggleProjects">
+                                    <div class="project-card-top">
+                                        <span class="project-dot state-@p.State.ToString().ToLower()"></span>
+                                        <span class="project-card-name">@p.Name</span>
+                                        @if (!string.IsNullOrEmpty(p.Domain))
+                                        {
+                                            <span class="domain-tag">@p.Domain</span>
+                                        }
+                                    </div>
+                                    <div class="project-card-meta">
+                                        <span>@p.State</span>
+                                        <span>@p.UpdatedAt.ToString("dd.MM HH:mm")</span>
+                                    </div>
+                                    <div class="project-card-links">
+                                        <a href="/project/@p.Id/chat">💬 Sohbet</a>
+                                        <a href="/project/@p.Id/leads">👥 Leads</a>
+                                        <a href="/project/@p.Id/tasks">📋 Görevler</a>
+                                        <a href="/project/@p.Id/activity">📊 Aktivite</a>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="empty-text">Henüz proje yok. <a href="/chat/new">Yeni sohbet başlat</a></p>
+                    }
+                </div>
+            </div>
+        }
+
         <div class="content-inner">
             @Body
         </div>
     </main>
 </div>
 
+<style>
+/* Projects Overlay */
+.projects-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.3);
+    z-index: 200;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 80px;
+    animation: fadeIn .2s ease;
+}
+@@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.projects-panel {
+    width: 600px;
+    max-width: 90vw;
+    max-height: 70vh;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideDown .2s ease;
+}
+@@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+.panel-header h2 { font-size: 16px; font-weight: 700; }
+.panel-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+.panel-close:hover { background: var(--surface-2); color: var(--text); }
+
+.project-list {
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.project-card {
+    display: block;
+    padding: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all var(--transition);
+}
+.project-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.project-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.project-card-name { font-weight: 600; font-size: 14px; }
+.project-card-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+.project-card-links {
+    display: flex;
+    gap: 8px;
+}
+.project-card-links a {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--surface);
+    transition: all var(--transition);
+}
+.project-card-links a:hover {
+    color: var(--accent-light);
+    background: var(--accent-bg);
+}
+
+.nav-badge {
+    margin-left: auto;
+    background: var(--accent-bg);
+    color: var(--accent-light);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.empty-text {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.empty-text a { color: var(--accent-light); }
+</style>
+
 @code {
     private IReadOnlyList<Project> _projects = [];
+    private bool _showProjects;
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,22 +260,25 @@
         _projects = await db.Projects.OrderByDescending(p => p.UpdatedAt).ToListAsync();
     }
 
+    private void ToggleProjects() => _showProjects = !_showProjects;
+
     private async Task DeleteProject(Guid projectId)
     {
         await using var db = await DbFactory.CreateDbContextAsync();
         var project = await db.Projects.FindAsync(projectId);
         if (project is null) return;
 
-        // İlişkili verileri sil
         var leads = await db.Leads.Where(l => l.ProjectId == projectId).ToListAsync();
         var runs = await db.Set<Domain.Aggregates.ExecutionRun>().Where(r => r.ProjectId == projectId).ToListAsync();
         var tasks = await db.Set<Domain.Aggregates.CrewOpsTask>().Where(t => t.ProjectId == projectId).ToListAsync();
         var audits = await db.AuditEvents.Where(a => a.ProjectId == projectId).ToListAsync();
+        var chats = await db.ChatMessages.Where(c => c.ProjectId == projectId).ToListAsync();
 
         db.Leads.RemoveRange(leads);
         db.Set<Domain.Aggregates.ExecutionRun>().RemoveRange(runs);
         db.Set<Domain.Aggregates.CrewOpsTask>().RemoveRange(tasks);
         db.AuditEvents.RemoveRange(audits);
+        db.ChatMessages.RemoveRange(chats);
         db.Projects.Remove(project);
 
         await db.SaveChangesAsync();
