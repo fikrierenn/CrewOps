@@ -416,9 +416,94 @@ Her oturumdaki ilerleme kronolojik olarak kaydedilir. Session düşse bile burad
 2. `d1f39cd` — SEO modülü + Chat/Sidebar iyileştirmeleri
 3. `4c4c010` — README güncelleme
 
+---
+
+## 2026-04-08 (devam 2 — aynı oturum)
+**Odak:** Skill-driven architecture + UI iyileştirmeleri + pipeline fix'leri
+
+### Skill-Driven Architecture Faz 1 TAMAMLANDI
+- **crewops-core plugin** oluşturuldu: `agents-main/plugins/crewops-core/`
+- **4 skill SKILL.md** yazıldı:
+  - `domain-classifier` — kullanıcı mesajından sektör/kategori çıkarma
+  - `prompt-expert` — sektöre özel Google arama prompt'u
+  - `content-expert` — sektöre özel demo site içeriği rehberi
+  - `skill-creator` — bilinmeyen sektör için otomatik skill oluşturma (meta-skill)
+- **5 sektör JSON config:**
+  - berber.json (💈 erkek berberleri)
+  - guzellik.json (✨ güzellik salonları)
+  - dis.json (🦷 diş klinikleri)
+  - restoran.json (🍽️ restoranlar)
+  - veteriner.json (🐾 veteriner klinikleri)
+- **SectorSkillLoader** servisi: JSON config yükle, classify et, yeni sektör kaydet
+- **OrchestrationEngine:** hardcode prompt → SectorConfig'den dinamik prompt
+- **DemoSiteGenerator:** hardcode "güzellik salonu" → sektöre özel içerik rehberi
+
+### Pipeline Fix'leri
+- **Domain event scope hatası:** SaveChangesAsync try-catch ile güvenli hale getirildi
+- **Chat mesaj kaybolma:** PmChat DI scope düzeltmesi (IProjectRepository → IDbContextFactory)
+- **Chat Enter çalışmama:** textarea → form+input değişikliği
+- **Chat onay algılanmıyor:** `IsUserApproval` — kullanıcı "evet/onayla" deyince orkestrasyon başlıyor
+- **LeadParser:** bracket counting ile JSON parse (kesilmiş JSON desteği)
+- **Groq rate limit:** otomatik Gemini fallback çalıştı
+
+### UI İyileştirmeleri
+- **Chat:** Markdown render (heading, liste, kod bloğu, tablo), auto-scroll, URL güncelleme
+- **Chat:** Quick action butonları (Onayla, Detaylandır, Değiştir, Daha Fazla)
+- **Lead sayfası:** SEO rapor, filtreler (Sitesiz/Kötü/Sitesi Var/Demo Hazır), detay panel
+- **Lead sayfası:** Mevcut site linki + telefon butonu + WhatsApp
+- **Lead sayfası:** Toplu işlem (Demo Oluştur, Doğrula, CSV)
+- **Light tema** default + dark toggle (🌓 buton)
+- **Sidebar:** Sadeleştirildi, projeler modal olarak açılıyor
+- **Settings sayfası:** Provider durumu, DB bilgisi, API endpoints
+- **Dashboard:** Lead/demo istatistikleri, sektör etiketleri
+
+### API Endpoint'leri Eklendi
+- `GET /api/projects/{id}/leads` — Lead listesi
+- `GET /api/sectors` — Yüklü sektörler
+- `POST /api/sectors/classify` — Metin'den sektör tespit
+- `POST /api/projects/{id}/chat` — PM Chat API
+- `GET /api/projects/{id}/chat` — Chat history
+- `DELETE /api/projects/cleanup` — Tüm verileri temizle
+
+### Pipeline Testi — Bursa Erkek Berberleri (Skill-Driven)
+- SectorSkillLoader: "berber" sektörü tespit edildi (skor: 12)
+- 3 ilçe (Nilüfer, Osmangazi, Yıldırım) arandı
+- **22 gerçek erkek berberi** bulundu (HK Barbers, Madanoğlu, Formen, YakutOğlu...)
+- **21 demo site** oluşturuldu (berber'e özel içerik)
+- **21 pazarlama mesajı** hazırlandı
+- **Önceki test vs şimdi:** Belediye/kültür merkezi → %100 berber (skill config farkı)
+
+### Git — 18+ commit push edildi
+GitHub: https://github.com/fikrierenn/CrewOps
+
+### Dosya Değişiklikleri (bu devam oturum)
+
+| Dosya | İşlem |
+|-------|-------|
+| `agents-main/plugins/crewops-core/` | Yeni plugin (4 skill + 5 sektör JSON) |
+| `src/CrewOps.Api/Services/SectorSkillLoader.cs` | Yeni |
+| `src/CrewOps.Api/Services/OrchestrationEngine.cs` | Skill entegrasyonu |
+| `src/CrewOps.Api/Services/DemoSiteGenerator.cs` | Sektör config entegrasyonu |
+| `src/CrewOps.Api/Services/LeadParser.cs` | Bracket counting JSON parse |
+| `src/CrewOps.Api/Services/PmAgentService.cs` | DB persistence |
+| `src/CrewOps.Api/Components/Pages/PmChat.razor` | Markdown, auto-scroll, form input, onay fix |
+| `src/CrewOps.Api/Components/Pages/LeadList.razor` | SEO, filtre, mevcut site linki, toplu işlem |
+| `src/CrewOps.Api/Components/Pages/Dashboard.razor` | Lead/demo istatistikleri |
+| `src/CrewOps.Api/Components/Pages/Settings.razor` | Yeni |
+| `src/CrewOps.Api/Components/Layout/MainLayout.razor` | Sidebar sadeleştirme, tema toggle, proje modal |
+| `src/CrewOps.Api/Components/App.razor` | Dark tema script |
+| `src/CrewOps.Api/Routes/ProjectRoutes.cs` | Leads + Sectors + Chat API |
+| `src/CrewOps.Api/wwwroot/css/app.css` | Light tema + dark toggle |
+| `src/CrewOps.Api/wwwroot/css/chat.css` | Markdown + quick action stili |
+| `src/CrewOps.Infrastructure/Persistence/CrewOpsDbContext.cs` | Domain event scope fix |
+| `src/CrewOps.Infrastructure/Persistence/DesignTimeDbContextFactory.cs` | Yeni |
+| `src/CrewOps.Infrastructure/Persistence/Configurations/ChatMessageConfiguration.cs` | Yeni |
+| `src/CrewOps.Domain/Entities/ChatMessageEntity.cs` | Yeni |
+
 ### Sıradaki İşler (Sonraki Oturum)
-1. **Skill-driven orkestrasyon**: agents-main/ skill'lerini gerçek araç olarak çalıştır (seo-audit skill → SeoAnalyzer tetikle)
-2. **Proje kategorisi**: PM'den otomatik sektör/kategori atama
-3. **Arama iyileştirme**: Google Places API, daha fazla ilçe, paralel arama
-4. **Chat ekranı**: Markdown render iyileştirme, auto-scroll, mesaj düzenleme
-5. **Lead detay sayfası**: SEO raporu görselleştirme, demo site preview, pazarlama mesajı
+1. **Skill Faz 2:** marketing-copywriter + website-assessor + seo-reporter + site-briefer
+2. **site-briefer:** Mevcut siteden SEO brief → content-expert'e input → "sitenizde şu eksikler var" satış stratejisi
+3. **skill-creator otomatik:** Bilinmeyen sektör gelince LLM ile yeni JSON config oluşturma
+4. **Admin tema:** Güzel bir admin temasından esinlenerek UI yenileme
+5. **Google Places API:** Daha fazla ve doğru sonuç
+6. **Paralel arama:** İlçeler paralel aranabilir (şu an sıralı)
