@@ -1,0 +1,6 @@
+{
+  "name": "crewops-core",
+  "version": "1.0.0",
+  "description": "CrewOps evrensel orkestratör çekirdek skill'leri — sektör sınıflandırma, dinamik prompt, içerik üretimi, skill oluşturma",
+  "author": "CrewOps Team"
+}

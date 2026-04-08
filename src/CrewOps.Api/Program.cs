@@ -88,6 +88,7 @@ try
     builder.Services.AddHttpClient<WebsiteProber>();
     builder.Services.AddHttpClient<SeoAnalyzer>();
     builder.Services.AddHttpClient(); // Blazor → API calls
+    builder.Services.AddSingleton<SectorSkillLoader>();
     builder.Services.AddSingleton<PmAgentService>();
     builder.Services.AddScoped<OrchestrationEngine>();
     builder.Services.AddScoped<CrewOps.Api.Services.LeadVerifier>();

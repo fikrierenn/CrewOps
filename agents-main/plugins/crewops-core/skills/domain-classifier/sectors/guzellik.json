@@ -1,0 +1,15 @@
+{
+  "sector": "guzellik",
+  "sectorLabel": "Güzellik Salonları",
+  "category": "kişisel bakım",
+  "searchKeywords": ["güzellik salonu", "güzellik merkezi", "beauty center", "kadın kuaförü", "kuaför"],
+  "excludeKeywords": ["erkek berber", "barber", "oto yıkama"],
+  "typicalServices": ["Cilt Bakımı", "Saç Bakımı", "Manikür & Pedikür", "Lazer Epilasyon", "Kaş & Kirpik", "Masaj & SPA"],
+  "serviceEmojis": ["✨", "💇", "💅", "🔆", "👁️", "💆"],
+  "sloganStyle": "şık, premium, kendine yatırım",
+  "sloganExamples": ["Güzelliğinize değer katıyoruz", "Kendinizi özel hissedin", "Doğal güzelliğinizi keşfedin"],
+  "reviewStyle": "profesyonel, memnuniyet, tavsiye",
+  "reviewExamples": ["Harika bir deneyimdi", "Çok profesyonel kadro", "Kesinlikle tavsiye ederim"],
+  "aboutTone": "Modern ekipmanlar ve uzman kadroyla premium güzellik hizmetleri sunan, müşteri memnuniyetini ön planda tutan",
+  "mapSearchQuery": "güzellik salonu {district} {city}"
+}

@@ -8,6 +8,7 @@ public sealed class DemoSiteGenerator
 {
     private readonly LlmClient _llm;
     private readonly IDbContextFactory<CrewOpsDbContext> _dbFactory;
+    private readonly SectorSkillLoader _sectorLoader;
     private readonly ILogger<DemoSiteGenerator> _logger;
     // Template cache aşağıda GetTemplatesAsync'de
 
@@ -43,10 +44,11 @@ public sealed class DemoSiteGenerator
         "https://images.unsplash.com/photo-1629397685944-7073e0547986?w=1400&h=900&fit=crop",
     ];
 
-    public DemoSiteGenerator(LlmClient llm, IDbContextFactory<CrewOpsDbContext> dbFactory, ILogger<DemoSiteGenerator> logger)
+    public DemoSiteGenerator(LlmClient llm, IDbContextFactory<CrewOpsDbContext> dbFactory, SectorSkillLoader sectorLoader, ILogger<DemoSiteGenerator> logger)
     {
         _llm = llm;
         _dbFactory = dbFactory;
+        _sectorLoader = sectorLoader;
         _logger = logger;
     }
 
@@ -129,12 +131,27 @@ public sealed class DemoSiteGenerator
 
     private async Task<SalonContent> GenerateContentAsync(Lead lead, CancellationToken ct)
     {
+        // Sektör config'inden içerik rehberi al
+        var sector = _sectorLoader.Classify(lead.Name);
+        var servicesHint = sector.TypicalServices.Length > 0
+            ? $"Önerilen hizmetler: {string.Join(", ", sector.TypicalServices)}"
+            : "";
+        var toneHint = !string.IsNullOrEmpty(sector.AboutTone)
+            ? $"Ton: {sector.AboutTone}"
+            : "";
+        var sloganHint = sector.SloganExamples.Length > 0
+            ? $"Slogan ilham: {string.Join(", ", sector.SloganExamples)}"
+            : "";
+
         var result = await _llm.SendMessageAsync(
-            "Güzellik salonu web sitesi içerik yazarısın. Kısa, profesyonel, Türkçe yaz. Formatı AYNEN kullan.",
+            $"{sector.SectorLabel} web sitesi içerik yazarısın. Kısa, profesyonel, Türkçe yaz. {toneHint}. Formatı AYNEN kullan.",
             [new ChatMessage("user", $"""
-Salon: {lead.Name}
+İşletme: {lead.Name}
+Sektör: {sector.SectorLabel}
 Adres: {lead.Address}
 Puan: {lead.GoogleRating}/5 ({lead.GoogleReviewCount} yorum)
+{servicesHint}
+{sloganHint}
 
 Şu formatı AYNEN yaz (her satır başında etiket olsun):
 SLOGAN: (max 8 kelime etkileyici slogan)

@@ -1,0 +1,15 @@
+{
+  "sector": "veteriner",
+  "sectorLabel": "Veteriner Klinikleri",
+  "category": "sağlık",
+  "searchKeywords": ["veteriner", "veteriner kliniği", "hayvan hastanesi", "pet klinik", "veteriner hekim"],
+  "excludeKeywords": ["pet shop", "hayvan barınağı", "eczane"],
+  "typicalServices": ["Genel Muayene", "Aşılama", "Cerrahi Operasyon", "Diş Bakımı", "Tıraş & Bakım", "Acil Servis"],
+  "serviceEmojis": ["🐾", "💉", "🏥", "🦷", "✂️", "🚨"],
+  "sloganStyle": "şefkatli, güvenilir, hayvan dostu",
+  "sloganExamples": ["Dostlarınız güvende", "Patili dostlarınızın sağlığı", "Sevgiyle bakıyoruz"],
+  "reviewStyle": "dostça, hayvan övgüsü, güven",
+  "reviewExamples": ["Kedime çok iyi baktılar", "Güvenilir veteriner", "Hayvan dostu ortam"],
+  "aboutTone": "Evcil hayvanlarınızı ailece seven, modern tıbbi ekipmanlarla her türlü tedaviyi uygulayan, deneyimli veteriner hekim kadrosuna sahip",
+  "mapSearchQuery": "veteriner kliniği {district} {city}"
+}

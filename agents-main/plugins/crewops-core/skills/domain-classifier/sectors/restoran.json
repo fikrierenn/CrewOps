@@ -1,0 +1,15 @@
+{
+  "sector": "restoran",
+  "sectorLabel": "Restoran & Kafeler",
+  "category": "yeme-içme",
+  "searchKeywords": ["restoran", "lokanta", "cafe", "kafe", "kebapçı", "pizzacı", "burger"],
+  "excludeKeywords": ["market", "bakkal", "manav", "kasap"],
+  "typicalServices": ["Kahvaltı", "Öğle Menüsü", "Akşam Yemeği", "Paket Servis", "Catering", "Özel Gün Organizasyon"],
+  "serviceEmojis": ["🍳", "🍽️", "🥘", "📦", "🎉", "🎂"],
+  "sloganStyle": "sıcak, davetkar, lezzet odaklı",
+  "sloganExamples": ["Lezzetin adresi", "Damak tadınıza hitap ediyoruz", "Her lokmada mutluluk"],
+  "reviewStyle": "lezzet övgüsü, porsiyon, ambiyans",
+  "reviewExamples": ["Lezzeti muhteşem", "Porsiyonlar doyurucu", "Ambiyans ve hizmet harika"],
+  "aboutTone": "Taze malzemeler ve usta şeflerin elinden çıkan lezzetlerle misafirlerine unutulmaz deneyimler sunan",
+  "mapSearchQuery": "restoran {district} {city}"
+}

@@ -1,0 +1,15 @@
+{
+  "sector": "dis",
+  "sectorLabel": "Diş Klinikleri",
+  "category": "sağlık",
+  "searchKeywords": ["diş kliniği", "diş hekimi", "ağız diş sağlığı polikliniği", "dental clinic", "diş doktoru"],
+  "excludeKeywords": ["hastane", "eczane", "optik", "göz"],
+  "typicalServices": ["İmplant", "Ortodonti", "Kanal Tedavisi", "Diş Beyazlatma", "Çocuk Diş Hekimliği", "Diş Protez"],
+  "serviceEmojis": ["🦷", "😁", "🏥", "✨", "👶", "🔧"],
+  "sloganStyle": "güvenilir, profesyonel, modern tıp, gülüş",
+  "sloganExamples": ["Gülüşünüze değer katıyoruz", "Sağlıklı gülüşler için", "Diş sağlığınız güvende"],
+  "reviewStyle": "acısız tedavi, ilgili doktor, modern klinik",
+  "reviewExamples": ["Hiç acı hissetmedim", "Çok ilgili ve güler yüzlü doktor", "Korkularımı yendim"],
+  "aboutTone": "Son teknoloji ekipmanlar ve deneyimli diş hekimleriyle ağız ve diş sağlığı hizmetleri sunan, hasta konforunu ön planda tutan",
+  "mapSearchQuery": "diş kliniği {district} {city}"
+}

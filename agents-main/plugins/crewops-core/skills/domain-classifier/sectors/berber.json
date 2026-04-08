@@ -1,0 +1,15 @@
+{
+  "sector": "berber",
+  "sectorLabel": "Erkek Berberleri",
+  "category": "kişisel bakım",
+  "searchKeywords": ["erkek berber", "erkek kuaför", "barber", "barber shop", "berber salonu"],
+  "excludeKeywords": ["güzellik salonu", "kadın kuaför", "unisex", "güzellik merkezi"],
+  "typicalServices": ["Saç Kesimi", "Sakal Tıraşı", "Cilt Bakımı", "Damat Tıraşı", "Çocuk Kesimi", "Saç Boyama"],
+  "serviceEmojis": ["💈", "✂️", "🪒", "👔", "👦", "🎨"],
+  "sloganStyle": "erkeksi, güven veren, usta-çırak geleneği",
+  "sloganExamples": ["Ustalığın adresi", "Erkek bakımında fark", "Tıraş sanatı burada"],
+  "reviewStyle": "samimi, usta övgüsü, randevu kolaylığı",
+  "reviewExamples": ["Ustam eline sağlık", "Her zaman aynı kalite", "Çocuklar bile korkmuyor"],
+  "aboutTone": "Profesyonel erkek bakım hizmetleri sunan, deneyimli ustaların bulunduğu, hijyen ve kaliteden ödün vermeyen",
+  "mapSearchQuery": "erkek berber {district} {city}"
+}

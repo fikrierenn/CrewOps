@@ -22,6 +22,8 @@ public sealed class OrchestrationEngine
     private readonly DemoSiteGenerator _demoGenerator;
     private readonly ILogger<OrchestrationEngine> _logger;
 
+    private readonly SectorSkillLoader _sectorLoader;
+
     public OrchestrationEngine(
         IProjectRepository projectRepo,
         ITaskRepository taskRepo,
@@ -31,6 +33,7 @@ public sealed class OrchestrationEngine
         Infrastructure.Persistence.CrewOpsDbContext db,
         LeadVerifier verifier,
         DemoSiteGenerator demoGenerator,
+        SectorSkillLoader sectorLoader,
         ILogger<OrchestrationEngine> logger)
     {
         _projectRepo = projectRepo;
@@ -41,6 +44,7 @@ public sealed class OrchestrationEngine
         _db = db;
         _verifier = verifier;
         _demoGenerator = demoGenerator;
+        _sectorLoader = sectorLoader;
         _logger = logger;
     }
 
@@ -213,12 +217,14 @@ public sealed class OrchestrationEngine
 
             try
             {
+                var sectorConfig = _sectorLoader.Classify(project.InitialRequest ?? project.Name, project.Name);
                 var searchPrompt = BuildDistrictSearchPrompt(task, project, district, city);
 
                 var result = await _llm.SendMessageAsync(
                     searchPrompt,
-                    [new ChatMessage("user", $"{city} {district} ilçesindeki {ExtractBusinessType(project.Name)} ara ve bul. " +
-                        "Google Maps'te ara. Bulunan HER işletmenin bilgilerini JSON formatında ver. " +
+                    [new ChatMessage("user", $"{city} {district} ilçesindeki {sectorConfig.SectorLabel} ara ve bul. " +
+                        $"Google Maps'te \"{sectorConfig.MapSearchQuery.Replace("{district}", district).Replace("{city}", city)}\" ara. " +
+                        "Bulunan HER işletmenin bilgilerini JSON formatında ver. " +
                         "En az 5 işletme bul. HALÜSİNASYON YAPMA — bulamadığını uydurma.")],
                     maxTokens: 4096,
                     useWebSearch: true,
@@ -312,30 +318,41 @@ public sealed class OrchestrationEngine
         }
     }
 
-    /// <summary>İlçe bazlı arama prompt'u — odaklı ve spesifik.</summary>
-    private static string BuildDistrictSearchPrompt(CrewOpsTask task, Project project, string district, string city)
+    /// <summary>İlçe bazlı arama prompt'u — sektör skill config'inden dinamik oluşturulur.</summary>
+    private string BuildDistrictSearchPrompt(CrewOpsTask task, Project project, string district, string city)
     {
-        var businessType = ExtractBusinessType(project.Name);
+        var sectorConfig = _sectorLoader.Classify(project.InitialRequest ?? project.Name, project.Name);
         var jsonExample = """[{"ad":"İşletme Adı","adres":"Tam adres","ilce":"İlçe","telefon":"+90...","puan":4.5,"yorumSayisi":150,"siteDurumu":"yok","siteUrl":null}]""";
+        var searchQuery = sectorConfig.MapSearchQuery.Replace("{district}", district).Replace("{city}", city);
+        var excludeList = sectorConfig.ExcludeKeywords.Length > 0
+            ? string.Join(", ", sectorConfig.ExcludeKeywords)
+            : "belediye, okul, hastane gibi alakasız yerler";
 
         return $"""
             Sen bir araştırma agent'ısın. Google Maps'te gerçek işletme araması yapıyorsun.
 
             ## GÖREV
-            {city} ili {district} ilçesindeki {businessType} bul.
-            Google Maps'te "{businessType} {district} {city}" araması yap.
+            {city} ili {district} ilçesindeki {sectorConfig.SectorLabel} bul.
+
+            ## ARAMA SORGUSU
+            Google Maps'te şu sorguları yap:
+            1. "{searchQuery}"
+            {string.Join("\n", sectorConfig.SearchKeywords.Take(3).Select((k, i) => $"            {i + 2}. \"{k} {district} {city}\""))}
+
+            ## FİLTRE
+            - SADECE {sectorConfig.SectorLabel} kategorisindeki işletmeleri yaz
+            - Şu kategoriler DAHİL DEĞİL: {excludeList}
+            - Belediye, kültür merkezi, okul gibi alakasız yerler YAZMA
 
             ## KRİTİK KURALLAR
             1. SADECE Google Maps / Google Haritalar verisini kullan
             2. HALÜSİNASYON YAPMA — gerçek olduğundan emin olmadığın bilgiyi ASLA üretme
             3. Bulamadığın bilgi için "bilinmiyor" yaz
             4. SADECE {city} {district} ilçesindeki işletmeleri yaz
-            5. SADECE {businessType} kategorisindeki işletmeleri yaz — başka kategori YAZMA
-            6. Belediye, kültür merkezi, okul, hastane gibi alakasız yerler YAZMA
-            7. Sonuçları JSON array formatında ver: {jsonExample}
-            8. Her işletme için: ad, adres, ilce, telefon, puan, yorumSayisi, siteDurumu bilgisi ZORUNLU
-            9. siteDurumu: "yok" (web sitesi yok), "var" (web sitesi var), "bilinmiyor"
-            10. En az 5 işletme bul — mümkünse 10+
+            5. Sonuçları JSON array formatında ver: {jsonExample}
+            6. Her işletme için: ad, adres, ilce, telefon, puan, yorumSayisi, siteDurumu bilgisi ZORUNLU
+            7. siteDurumu: "yok" (web sitesi yok), "var" (web sitesi var), "bilinmiyor"
+            8. En az 5 işletme bul — mümkünse 10+
             """;
     }
 
