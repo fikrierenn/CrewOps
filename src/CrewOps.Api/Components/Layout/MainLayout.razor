@@ -53,6 +53,14 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/demo-preview.html" class="nav-link" target="_blank">
+                        <span class="nav-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                        </span>
+                        Template'ler
+                    </a>
+                </li>
+                <li>
                     <a href="/settings" class="nav-link">
                         <span class="nav-icon">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -80,9 +88,11 @@
                                 </div>
                             </a>
                             <div class="project-actions">
-                                <a href="/project/@p.Id/chat" class="sub-link" title="Sohbet">💬</a>
-                                <a href="/project/@p.Id/leads" class="sub-link" title="Leads">👥</a>
-                                <button class="delete-btn" @onclick="() => DeleteProject(p.Id)" title="Sil">🗑️</button>
+                                <a href="/project/@p.Id/chat" class="sub-link" title="Sohbet">💬 Sohbet</a>
+                                <a href="/project/@p.Id/leads" class="sub-link" title="Leads">👥 Leads</a>
+                                <a href="/project/@p.Id/tasks" class="sub-link" title="Görevler">📋 Görevler</a>
+                                <a href="/project/@p.Id/executions" class="sub-link" title="Çalışmalar">⚡ Çalışma</a>
+                                <a href="/project/@p.Id/activity" class="sub-link" title="Aktivite">📊 Aktivite</a>
                             </div>
                         </li>
                     }

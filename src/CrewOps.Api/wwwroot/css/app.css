@@ -582,9 +582,7 @@ tr.timedout td:first-child { box-shadow: inset 3px 0 0 var(--warning); }
     background: rgba(255,255,255,.02);
 }
 
-.project-item:hover .project-actions {
-    opacity: 1;
-}
+/* project-actions artık her zaman görünür */
 
 .project-link {
     display: flex !important;
@@ -628,10 +626,9 @@ tr.timedout td:first-child { box-shadow: inset 3px 0 0 var(--warning); }
 
 .project-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 2px;
-    padding: 2px 8px 6px 28px;
-    opacity: 0;
-    transition: opacity var(--transition);
+    padding: 2px 8px 8px 28px;
 }
 
 .project-actions .sub-link,
