@@ -85,6 +85,8 @@ try
 
     // ─── LLM Client + PM Agent + Orchestration ────────────────
     builder.Services.AddHttpClient<LlmClient>();
+    builder.Services.AddHttpClient<WebsiteProber>();
+    builder.Services.AddHttpClient<SeoAnalyzer>();
     builder.Services.AddHttpClient(); // Blazor → API calls
     builder.Services.AddSingleton<PmAgentService>();
     builder.Services.AddScoped<OrchestrationEngine>();

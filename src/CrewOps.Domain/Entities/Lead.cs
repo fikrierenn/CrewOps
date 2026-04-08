@@ -48,6 +48,12 @@ public sealed class Lead
     /// <summary>Notlar.</summary>
     public string? Notes { get; private set; }
 
+    /// <summary>SEO skoru (0-100). Null ise henüz analiz edilmemiş.</summary>
+    public int? SeoScore { get; private set; }
+
+    /// <summary>SEO raporu (JSON string). Detaylı analiz sonuçları.</summary>
+    public string? SeoReport { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -102,6 +108,22 @@ public sealed class Lead
     {
         Status = "Interested";
         Notes = notes;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>SEO analiz sonucunu kaydeder.</summary>
+    public void SetSeoResult(int score, string reportJson)
+    {
+        SeoScore = Math.Clamp(score, 0, 100);
+        SeoReport = reportJson;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Web sitesi URL ve durumunu günceller (WebsiteProber sonucu).</summary>
+    public void SetWebsiteInfo(string? url, string status)
+    {
+        WebsiteUrl = url;
+        WebsiteStatus = status;
         UpdatedAt = DateTime.UtcNow;
     }
 }
