@@ -31,19 +31,19 @@ public static class LeadParser
         // Code block varsa strip et: ```json ... ```
         var cleaned = Regex.Replace(text, @"```(?:json)?\s*", "");
 
-        // TÜM JSON array'leri bul (birden fazla olabilir — ilçe ilçe aramada)
-        var jsonMatches = Regex.Matches(cleaned, @"\[[\s\S]*?\{[\s\S]*?""ad""[\s\S]*?\}[\s\S]*?\]");
-        if (jsonMatches.Count == 0) return leads;
+        // JSON array blokları bul — [ ile başlayıp "ad" içeren her blok
+        var jsonBlocks = ExtractJsonBlocks(cleaned);
+        if (jsonBlocks.Count == 0) return leads;
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (Match jsonMatch in jsonMatches)
+        foreach (var jsonBlock in jsonBlocks)
         {
             try
             {
                 // Kesilmiş JSON'u düzeltmeye çalış
-                var jsonText = FixTruncatedJson(jsonMatch.Value);
+                var jsonText = FixTruncatedJson(jsonBlock);
 
                 var items = JsonSerializer.Deserialize<List<LeadDto>>(jsonText, options);
                 if (items is null) continue;
@@ -69,6 +69,53 @@ public static class LeadParser
         }
 
         return leads;
+    }
+
+    /// <summary>Metinden tüm JSON array bloklarını çıkarır — bracket counting ile.</summary>
+    private static List<string> ExtractJsonBlocks(string text)
+    {
+        var blocks = new List<string>();
+        var i = 0;
+        while (i < text.Length)
+        {
+            // [ ile başlayan ve "ad" içeren blok ara
+            var start = text.IndexOf('[', i);
+            if (start < 0) break;
+
+            // Bu blokta "ad" var mı kontrol et (ilk 500 karakter içinde)
+            var preview = text.Substring(start, Math.Min(500, text.Length - start));
+            if (!preview.Contains("\"ad\""))
+            {
+                i = start + 1;
+                continue;
+            }
+
+            // Bracket counting ile bloğun sonunu bul
+            var depth = 0;
+            var end = start;
+            for (var j = start; j < text.Length; j++)
+            {
+                if (text[j] == '[') depth++;
+                else if (text[j] == ']') depth--;
+                if (depth == 0)
+                {
+                    end = j + 1;
+                    break;
+                }
+            }
+
+            // Depth 0'a ulaşamadıysa — kesilmiş JSON
+            if (depth > 0)
+                end = text.Length;
+
+            var block = text[start..end];
+            if (block.Contains("\"ad\""))
+                blocks.Add(block);
+
+            i = end;
+        }
+
+        return blocks;
     }
 
     /// <summary>Kesilmiş JSON'u düzeltmeye çalışır (token limiti yüzünden kesilmiş olabilir).</summary>
