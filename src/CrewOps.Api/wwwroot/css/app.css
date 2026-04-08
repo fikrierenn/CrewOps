@@ -162,6 +162,14 @@ body {
 
 .nav-link:hover .nav-icon { opacity: 1; }
 
+.nav-btn {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    text-align: left;
+}
+
 .sidebar-footer {
     padding: 16px 20px;
     border-top: 1px solid var(--border);

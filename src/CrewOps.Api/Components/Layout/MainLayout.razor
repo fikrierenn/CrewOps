@@ -39,14 +39,14 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/" class="nav-link" @onclick="ToggleProjects" @onclick:preventDefault>
+                    <button class="nav-link nav-btn" @onclick="ToggleProjects">
                         <span class="nav-icon">📁</span>
                         Projeler
                         @if (_projects.Any())
                         {
                             <span class="nav-badge">@_projects.Count</span>
                         }
-                    </a>
+                    </button>
                 </li>
                 <li>
                     <a href="/analytics" class="nav-link">
