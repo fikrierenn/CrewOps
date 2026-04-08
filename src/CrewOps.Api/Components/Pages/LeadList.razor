@@ -17,7 +17,8 @@
                 <button class="filter-btn @(_filter == "all" ? "active" : "")" @onclick="FilterAll">Tümü (@_leads.Count)</button>
                 <button class="filter-btn @(_filter == "yok" ? "active" : "")" @onclick="FilterNoSite">Sitesiz (@_leads.Count(l => l.WebsiteStatus == "yok"))</button>
                 <button class="filter-btn @(_filter == "kötü" ? "active" : "")" @onclick="FilterBadSite">Kötü Site (@_leads.Count(l => l.WebsiteStatus == "kötü"))</button>
-                <button class="filter-btn @(_filter == "demo" ? "active" : "")" @onclick="FilterDemo">Demo Hazır (@_leads.Count(l => l.DemoSiteUrl is not null))</button>
+                <button class="filter-btn @(_filter == "var" ? "active" : "")" @onclick="FilterHasSite">Sitesi Var (@_leads.Count(l => l.WebsiteUrl is not null))</button>
+            <button class="filter-btn @(_filter == "demo" ? "active" : "")" @onclick="FilterDemo">Demo Hazır (@_leads.Count(l => l.DemoSiteUrl is not null))</button>
             </div>
             <div class="bulk-actions">
                 <button class="bulk-btn bulk-demo" @onclick="BulkGenerateDemos" disabled="@_isBusy">🎨 Demo Oluştur</button>
@@ -89,11 +90,16 @@
                 <div class="lead-card-actions">
                     @if (lead.DemoSiteUrl is not null)
                     {
-                        <a href="@lead.DemoSiteUrl" target="_blank" class="action-btn action-demo">🌐 Demo</a>
+                        <a href="@lead.DemoSiteUrl" target="_blank" class="action-btn action-demo">🎨 Demo Site</a>
+                    }
+                    @if (lead.WebsiteUrl is not null)
+                    {
+                        <a href="@lead.WebsiteUrl" target="_blank" class="action-btn action-site">🌐 Mevcut Site</a>
                     }
                     @if (lead.Phone is not null)
                     {
                         <a href="https://wa.me/@(lead.Phone?.Replace("+","").Replace(" ",""))" target="_blank" class="action-btn action-whatsapp">💬 WhatsApp</a>
+                        <a href="tel:@lead.Phone" class="action-btn action-phone">📞 Ara</a>
                     }
                 </div>
             </div>
@@ -228,8 +234,12 @@ else
 .action-btn { padding: 4px 10px; border-radius: 6px; font-size: 11px; text-decoration: none; transition: all .2s; }
 .action-demo { background: var(--accent-bg); color: var(--accent-light); border: 1px solid rgba(124,108,240,.2); }
 .action-demo:hover { background: rgba(124,108,240,.15); }
+.action-site { background: rgba(96,165,250,.1); color: var(--info); border: 1px solid rgba(96,165,250,.2); }
+.action-site:hover { background: rgba(96,165,250,.15); }
 .action-whatsapp { background: rgba(37,211,102,.1); color: #25d366; border: 1px solid rgba(37,211,102,.2); }
 .action-whatsapp:hover { background: rgba(37,211,102,.15); }
+.action-phone { background: rgba(251,191,36,.1); color: var(--warning); border: 1px solid rgba(251,191,36,.2); }
+.action-phone:hover { background: rgba(251,191,36,.15); }
 
 .seo-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 .seo-good { background: rgba(52,211,153,.15); color: var(--success); }
@@ -289,6 +299,7 @@ else
     {
         "yok" => _leads.Where(l => l.WebsiteStatus == "yok"),
         "kötü" => _leads.Where(l => l.WebsiteStatus == "kötü"),
+        "var" => _leads.Where(l => l.WebsiteUrl is not null),
         "demo" => _leads.Where(l => l.DemoSiteUrl is not null),
         _ => _leads
     };
@@ -296,6 +307,7 @@ else
     private void FilterAll() => SetFilter("all");
     private void FilterNoSite() => SetFilter("yok");
     private void FilterBadSite() => SetFilter("kötü");
+    private void FilterHasSite() => SetFilter("var");
     private void FilterDemo() => SetFilter("demo");
     private void SetFilter(string filter) { _filter = filter; _selectedLead = null; }
     private void SelectLead(Lead lead) => _selectedLead = _selectedLead?.Id == lead.Id ? null : lead;
