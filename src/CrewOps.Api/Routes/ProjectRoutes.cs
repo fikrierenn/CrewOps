@@ -1,5 +1,6 @@
 using CrewOps.Api.Services;
 using CrewOps.Contracts.Commands;
+using Microsoft.EntityFrameworkCore;
 using CrewOps.Contracts.Queries;
 using MediatR;
 
@@ -22,6 +23,41 @@ public static class ProjectRoutes
             await db.SaveChangesAsync();
             return Results.Ok(new { message = "Tüm veriler temizlendi" });
         }).WithTags("Dev");
+
+        // ─── Leads API ────────────────────────────────────────
+        group.MapGet("/{id:guid}/leads", async (Guid id, IDbContextFactory<Infrastructure.Persistence.CrewOpsDbContext> dbf) =>
+        {
+            await using var db = await dbf.CreateDbContextAsync();
+            var leads = await db.Leads.Where(l => l.ProjectId == id)
+                .OrderByDescending(l => l.GoogleRating)
+                .ToListAsync();
+            return Results.Ok(leads.Select(l => new
+            {
+                l.Id, l.Name, l.Address, l.District, l.Phone,
+                l.GoogleRating, l.GoogleReviewCount,
+                l.WebsiteStatus, l.WebsiteUrl,
+                l.DemoSiteUrl, l.SeoScore, l.SeoReport,
+                l.Status, l.Notes, l.CreatedAt
+            }));
+        }).WithTags("Leads");
+
+        // Sektör API — yüklü sektörleri listele
+        app.MapGet("/api/sectors", (SectorSkillLoader loader) =>
+        {
+            return Results.Ok(loader.GetAll().Select(s => new
+            {
+                s.Sector, s.SectorLabel, s.Category,
+                Keywords = s.SearchKeywords.Length,
+                Services = s.TypicalServices
+            }));
+        }).WithTags("Sectors");
+
+        // Sektör tespit API
+        app.MapPost("/api/sectors/classify", (ClassifyRequest req, SectorSkillLoader loader) =>
+        {
+            var config = loader.Classify(req.Text);
+            return Results.Ok(config);
+        }).WithTags("Sectors");
 
         // PM Chat API — mesaj gönder, yanıt al
         group.MapPost("/{id:guid}/chat", async (Guid id, ChatRequest req, PmAgentService pm) =>
@@ -76,3 +112,6 @@ public static class ProjectRoutes
 
 /// <summary>PM Chat mesaj isteği.</summary>
 public sealed record ChatRequest(string Message);
+
+/// <summary>Sektör sınıflandırma isteği.</summary>
+public sealed record ClassifyRequest(string Text);
