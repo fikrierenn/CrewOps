@@ -323,16 +323,19 @@ public sealed class OrchestrationEngine
 
             ## GÖREV
             {city} ili {district} ilçesindeki {businessType} bul.
+            Google Maps'te "{businessType} {district} {city}" araması yap.
 
             ## KRİTİK KURALLAR
             1. SADECE Google Maps / Google Haritalar verisini kullan
             2. HALÜSİNASYON YAPMA — gerçek olduğundan emin olmadığın bilgiyi ASLA üretme
             3. Bulamadığın bilgi için "bilinmiyor" yaz
             4. SADECE {city} {district} ilçesindeki işletmeleri yaz
-            5. Sonuçları JSON array formatında ver: {jsonExample}
-            6. Her işletme için: ad, adres, ilce, telefon, puan, yorumSayisi, siteDurumu bilgisi ZORUNLU
-            7. siteDurumu: "yok" (web sitesi yok), "var" (web sitesi var), "bilinmiyor"
-            8. En az 5 işletme bul — mümkünse 10+
+            5. SADECE {businessType} kategorisindeki işletmeleri yaz — başka kategori YAZMA
+            6. Belediye, kültür merkezi, okul, hastane gibi alakasız yerler YAZMA
+            7. Sonuçları JSON array formatında ver: {jsonExample}
+            8. Her işletme için: ad, adres, ilce, telefon, puan, yorumSayisi, siteDurumu bilgisi ZORUNLU
+            9. siteDurumu: "yok" (web sitesi yok), "var" (web sitesi var), "bilinmiyor"
+            10. En az 5 işletme bul — mümkünse 10+
             """;
     }
 
@@ -390,6 +393,7 @@ public sealed class OrchestrationEngine
     {
         var lower = name.ToLowerInvariant();
         if (lower.Contains("diş") || lower.Contains("dis")) return "diş klinikleri";
+        if (lower.Contains("berber")) return "erkek berberleri";
         if (lower.Contains("güzellik") || lower.Contains("guzellik") || lower.Contains("kuaför") || lower.Contains("kuafor")) return "güzellik salonları";
         if (lower.Contains("restoran") || lower.Contains("cafe") || lower.Contains("kafe")) return "restoran ve kafeler";
         if (lower.Contains("oto") || lower.Contains("yıkama") || lower.Contains("servis")) return "oto yıkama ve servis";
