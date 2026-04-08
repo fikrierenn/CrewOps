@@ -30,6 +30,7 @@ public sealed class CrewOpsDbContext : DbContext
     public DbSet<ExecutionRun> ExecutionRuns => Set<ExecutionRun>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<ChatMessageEntity> ChatMessages => Set<ChatMessageEntity>();
 
     // ---------------------------------------------------------------------------
     // Model yapılandırması

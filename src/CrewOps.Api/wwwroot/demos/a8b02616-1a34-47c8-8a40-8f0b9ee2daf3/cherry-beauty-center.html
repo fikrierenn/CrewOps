@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cherry Beauty Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c1:#e11d48;--c2:#fb7185;--c3:#fda4af;
+  --font-display:'Cormorant Garamond',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --white:#fff;--dark:#111;--gray:#666;--light:#f7f7f5;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);color:var(--dark);line-height:1.7;overflow-x:hidden}
+img{max-width:100%;display:block}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
+.nav.scrolled{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);box-shadow:0 2px 20px rgba(0,0,0,.06);padding:14px 40px}
+.nav-logo{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--white);text-decoration:none;letter-spacing:1px}
+.nav.scrolled .nav-logo{color:var(--dark)}
+.nav-cta{background:var(--white);color:var(--dark);padding:10px 28px;border-radius:30px;font-size:.85rem;font-weight:700;text-decoration:none;letter-spacing:1px;text-transform:uppercase;transition:all .3s}
+.nav-cta:hover{background:var(--c1);color:var(--white);transform:scale(1.05)}
+.nav.scrolled .nav-cta{background:var(--c1);color:var(--white)}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.hero-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1400&h=900&fit=crop') center/cover}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(225,29,72,.75),rgba(251,113,133,.6))}
+.hero-content{position:relative;z-index:1;text-align:center;color:var(--white);max-width:800px;padding:0 24px}
+.hero h1{font-family:var(--font-display);font-size:clamp(3rem,7vw,5.5rem);font-weight:700;line-height:1.1;margin-bottom:16px;opacity:0;animation:heroIn .8s ease .2s forwards}
+.hero-sub{font-size:clamp(1rem,2.5vw,1.3rem);opacity:0;animation:heroIn .8s ease .5s forwards;margin-bottom:12px}
+.hero-rating{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);padding:12px 24px;border-radius:40px;font-size:.95rem;opacity:0;animation:heroIn .8s ease .7s forwards}
+.hero-rating .stars{color:#ffd700;font-size:1.2rem;letter-spacing:2px}
+.hero-cta{display:inline-block;margin-top:32px;padding:16px 48px;background:var(--white);color:var(--dark);font-weight:700;font-size:1rem;border-radius:40px;text-decoration:none;letter-spacing:1px;text-transform:uppercase;box-shadow:0 8px 30px rgba(0,0,0,.2);transition:all .3s;opacity:0;animation:heroIn .8s ease .9s forwards}
+.hero-cta:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+@keyframes heroIn{to{opacity:1;transform:translateY(0)}}
+.hero h1,.hero-sub,.hero-rating,.hero-cta{transform:translateY(20px)}
+
+/* SECTION COMMON */
+.section{padding:100px 24px}
+.section-title{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.2rem);text-align:center;margin-bottom:16px;font-weight:700}
+.section-subtitle{text-align:center;color:var(--gray);font-size:1.05rem;max-width:560px;margin:0 auto 48px}
+.section-label{text-align:center;text-transform:uppercase;letter-spacing:4px;font-size:.75rem;font-weight:700;color:var(--c1);margin-bottom:12px}
+
+/* ABOUT */
+.about{background:var(--light)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1000px;margin:0 auto;align-items:center}
+.about-img{border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.1)}
+.about-img img{width:100%;height:400px;object-fit:cover}
+.about-text h3{font-family:var(--font-display);font-size:1.8rem;margin-bottom:16px}
+.about-text p{color:var(--gray);margin-bottom:16px}
+.about-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--white);padding:8px 20px;border-radius:20px;font-size:.85rem;font-weight:600}
+
+/* SERVICES */
+.srv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1100px;margin:0 auto}
+.srv-card{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:4/3;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.srv-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.srv-card:hover img{transform:scale(1.08)}
+.srv-card-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.7) 0%,transparent 60%);display:flex;align-items:flex-end;padding:24px}
+.srv-card h3{color:var(--white);font-family:var(--font-display);font-size:1.3rem}
+
+/* REVIEWS */
+.reviews{background:var(--light)}
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:1000px;margin:0 auto}
+.rev-card{background:var(--white);border-radius:20px;padding:32px;box-shadow:0 4px 20px rgba(0,0,0,.04);transition:transform .3s}
+.rev-card:hover{transform:translateY(-4px)}
+.rev-stars{color:#ffd700;font-size:1.1rem;letter-spacing:2px;margin-bottom:12px}
+.rev-text{color:var(--gray);font-style:italic;margin-bottom:16px;font-size:1.05rem;line-height:1.8}
+.rev-author{font-weight:700;font-size:.9rem}
+
+/* MAP */
+.map-section{padding:0;background:var(--dark);position:relative}
+.map-content{display:grid;grid-template-columns:1fr 1fr;min-height:450px}
+.map-info{padding:60px 48px;color:var(--white);display:flex;flex-direction:column;justify-content:center}
+.map-info h2{font-family:var(--font-display);font-size:2.2rem;margin-bottom:24px}
+.map-info p{opacity:.7;margin-bottom:12px;font-size:1.05rem}
+.map-info a{color:var(--c2);font-weight:600}
+.map-frame{min-height:450px}
+.map-frame iframe{width:100%;height:100%;border:0}
+
+/* CONTACT CTA */
+.cta-section{background:linear-gradient(135deg,var(--c1),var(--c2));text-align:center;padding:100px 24px;color:var(--white)}
+.cta-section h2{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);margin-bottom:16px}
+.cta-section p{opacity:.85;font-size:1.1rem;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-phone{display:inline-block;font-size:2rem;font-weight:700;color:var(--white);text-decoration:none;margin-bottom:24px;transition:transform .3s}
+.cta-phone:hover{transform:scale(1.08)}
+.cta-btn{display:inline-block;background:var(--white);color:var(--dark);padding:16px 48px;border-radius:40px;font-weight:700;font-size:1rem;text-decoration:none;text-transform:uppercase;letter-spacing:1px;transition:all .3s;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.cta-btn:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+
+/* FOOTER */
+.footer{text-align:center;padding:32px;font-size:.8rem;color:var(--gray);background:var(--light)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav{padding:16px 20px}
+  .about-grid{grid-template-columns:1fr;gap:24px}
+  .about-img img{height:280px}
+  .map-content{grid-template-columns:1fr}
+  .map-info{padding:40px 24px}
+  .map-frame{min-height:300px}
+  .srv-grid{grid-template-columns:1fr}
+}
+</style>
+<script>
+window.addEventListener('scroll',()=>{
+  document.querySelector('.nav').classList.toggle('scrolled',window.scrollY>80)
+})
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="nav-logo">Cherry Beauty Center</a>
+  <a href="#iletisim" class="nav-cta">Randevu Al</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-img" style="background-image:url('https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=1400&h=900&fit=crop')"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Cherry Beauty Center</h1>
+    <p class="hero-sub">G&#252;zelliğiniz İ&#231;in M&#252;kemmel Dokunuşlar!</p>
+    <div class="hero-rating">
+      <span class="stars">★★★★★</span>
+      <span>4,9/5 · 137 Google Yorumu</span>
+    </div>
+    <a href="#iletisim" class="hero-cta">Randevu Al</a>
+  </div>
+</section>
+
+<section class="section about">
+  <div class="section-label">Hakkımızda</div>
+  <div class="about-grid">
+    <div class="about-img">
+      <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=600&fit=crop" alt="Salon" loading="lazy">
+    </div>
+    <div class="about-text">
+      <h3>Profesyonel G&#252;zellik</h3>
+      <p>Uzman kadromuz ile en kaliteli g&#252;zellik hizmetlerini sunuyoruz.</p>
+      <div class="about-badge">⭐ 4,9 Puan · 137 Mutlu Müşteri</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-label">Hizmetlerimiz</div>
+  <div class="section-title">Sizin İçin Sunduklarımız</div>
+  <div class="section-subtitle">Uzman kadromuz ile en kaliteli güzellik hizmetlerini sunuyoruz.</div>
+  <div class="srv-grid">
+    <div class="srv-card">
+      <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&h=450&fit=crop" alt="Cilt Bakımı" loading="lazy">
+      <div class="srv-card-overlay"><h3>Cilt Bakımı</h3></div>
+    </div>
+    <div class="srv-card">
+      <img src="https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=600&h=450&fit=crop" alt="Sa&#231; Bakımı" loading="lazy">
+      <div class="srv-card-overlay"><h3>Sa&#231; Bakımı</h3></div>
+    </div>
+    <div class="srv-card">
+      <img src="https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=450&fit=crop" alt="Manik&#252;r &amp; Pedik&#252;r" loading="lazy">
+      <div class="srv-card-overlay"><h3>Manik&#252;r &amp; Pedik&#252;r</h3></div>
+    </div>
+    <div class="srv-card">
+      <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600&h=450&fit=crop" alt="Epilasyon" loading="lazy">
+      <div class="srv-card-overlay"><h3>Epilasyon</h3></div>
+    </div>
+    <div class="srv-card">
+      <img src="https://images.unsplash.com/photo-1560869713-7d0a29430803?w=600&h=450&fit=crop" alt="Kaş &amp; Kirpik" loading="lazy">
+      <div class="srv-card-overlay"><h3>Kaş &amp; Kirpik</h3></div>
+    </div>
+    <div class="srv-card">
+      <img src="https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&h=450&fit=crop" alt="Masaj &amp; SPA" loading="lazy">
+      <div class="srv-card-overlay"><h3>Masaj &amp; SPA</h3></div>
+    </div>
+  </div>
+</section>
+
+<section class="section reviews">
+  <div class="section-label">Müşteri Yorumları</div>
+  <div class="section-title">Ne Diyorlar?</div>
+  <div class="section-subtitle">Google'da 137+ müşterimizin değerlendirmesi</div>
+  <div class="rev-grid">
+    <div class="rev-card">
+      <div class="rev-stars">★★★★★</div>
+      <p class="rev-text">"Harika bir deneyimdi!"</p>
+      <div class="rev-author">— Mutlu Müşteri</div>
+    </div>
+    <div class="rev-card">
+      <div class="rev-stars">★★★★★</div>
+      <p class="rev-text">"&#199;ok profesyonel kadro."</p>
+      <div class="rev-author">— Mutlu Müşteri</div>
+    </div>
+    <div class="rev-card">
+      <div class="rev-stars">★★★★★</div>
+      <p class="rev-text">"Kesinlikle tavsiye ederim."</p>
+      <div class="rev-author">— Mutlu Müşteri</div>
+    </div>
+  </div>
+</section>
+
+<section class="map-section">
+  <div class="map-content">
+    <div class="map-info">
+      <h2>Bize Ulaşın</h2>
+      <p>📍 Abide-i H&#252;rriyet Cad. Sibel Apt No:161 K:1, Merkez, 34381 Şişli/İstanbul, T&#252;rkiye</p>
+      <p>📞 <a href="tel:+902122963436">+902122963436</a></p>
+      <p>⭐ Google'da 4,9/5 puan</p>
+    </div>
+    <div class="map-frame">
+      <iframe src="https://www.google.com/maps?q=Cherry+Beauty+Center+Abide-i+H%C3%BCrriyet+Cad.+Sibel+Apt+No%3A161+K%3A1%2C+Merkez%2C+34381+%C5%9Ei%C5%9Fli%2F%C4%B0stanbul%2C+T%C3%BCrkiye&output=embed" allowfullscreen loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section" id="iletisim">
+  <h2>Güzelliğinize Yatırım Yapın</h2>
+  <p>Hemen randevu alın, farkı hissedin.</p>
+  <a href="tel:+902122963436" class="cta-phone">📞 +902122963436</a><br>
+  <a href="tel:+902122963436" class="cta-btn">Hemen Arayın</a>
+</section>
+
+<div class="footer">
+  <p>Bu site <strong>Cherry Beauty Center</strong> için özel olarak hazırlanmıştır · <a href="#">CrewOps AI</a></p>
+</div>
+</body>
+</html>

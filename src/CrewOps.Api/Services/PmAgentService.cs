@@ -1,17 +1,22 @@
+using CrewOps.Domain.Entities;
+using CrewOps.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
 namespace CrewOps.Api.Services;
 
 /// <summary>
 /// PM Agent servisi — kullanıcı ile sohbet eder, proje planlar, görev oluşturur.
-/// Her proje için ayrı conversation history tutar.
-/// LlmClient üzerinden çoklu provider desteği (Claude, OpenAI, Gemini).
+/// Her proje için ayrı conversation history tutar — DB'de kalıcı.
+/// LlmClient üzerinden çoklu provider desteği (Groq, Gemini, Claude).
 /// </summary>
 public sealed class PmAgentService
 {
     private readonly LlmClient _llm;
+    private readonly IDbContextFactory<CrewOpsDbContext> _dbFactory;
     private readonly ILogger<PmAgentService> _logger;
 
-    // Proje bazlı conversation history (memory'de — MVP için yeterli)
-    private readonly Dictionary<Guid, List<ChatMessage>> _conversations = new();
+    // In-memory cache (DB'den yüklenir, performans için)
+    private readonly Dictionary<Guid, List<ChatMessage>> _cache = new();
 
     private const string SystemPrompt = """
         Sen CrewOps AI Takım Orkestratörü'nün PM (Product Manager) agent'ısın.
@@ -65,30 +70,33 @@ public sealed class PmAgentService
         Bu planı onaylıyor musunuz?
         """;
 
-    public PmAgentService(LlmClient llm, ILogger<PmAgentService> logger)
+    public PmAgentService(LlmClient llm, IDbContextFactory<CrewOpsDbContext> dbFactory, ILogger<PmAgentService> logger)
     {
         _llm = llm;
+        _dbFactory = dbFactory;
         _logger = logger;
     }
 
     /// <summary>Aktif LLM provider adını döner.</summary>
     public string ActiveProvider => _llm.GetActiveProvider();
 
-    /// <summary>
-    /// PM agent'a mesaj gönderir, yanıt döner.
-    /// </summary>
+    /// <summary>PM agent'a mesaj gönderir, yanıt döner. Hem cache'e hem DB'ye yazar.</summary>
     public async Task<string> ChatAsync(Guid projectId, string userMessage, CancellationToken ct = default)
     {
-        if (!_conversations.ContainsKey(projectId))
-            _conversations[projectId] = new List<ChatMessage>();
+        var history = await GetOrLoadHistoryAsync(projectId, ct);
 
-        var history = _conversations[projectId];
+        // Kullanıcı mesajını ekle
         history.Add(new ChatMessage("user", userMessage));
+        await SaveMessageToDbAsync(projectId, "user", userMessage, history.Count - 1, ct);
 
         try
         {
             var response = await _llm.SendMessageAsync(SystemPrompt, history, ct: ct);
+
+            // PM yanıtını ekle
             history.Add(new ChatMessage("assistant", response));
+            await SaveMessageToDbAsync(projectId, "assistant", response, history.Count - 1, ct);
+
             return response;
         }
         catch (Exception ex)
@@ -98,11 +106,49 @@ public sealed class PmAgentService
         }
     }
 
-    /// <summary>
-    /// Proje için conversation history döner.
-    /// </summary>
-    public IReadOnlyList<ChatMessage> GetHistory(Guid projectId) =>
-        _conversations.TryGetValue(projectId, out var history)
-            ? history.AsReadOnly()
-            : [];
+    /// <summary>Proje için conversation history döner (cache + DB).</summary>
+    public IReadOnlyList<ChatMessage> GetHistory(Guid projectId)
+    {
+        if (_cache.TryGetValue(projectId, out var cached))
+            return cached.AsReadOnly();
+        return [];
+    }
+
+    /// <summary>Cache'i DB'den yükler (yoksa boş başlatır).</summary>
+    private async Task<List<ChatMessage>> GetOrLoadHistoryAsync(Guid projectId, CancellationToken ct)
+    {
+        if (_cache.TryGetValue(projectId, out var cached))
+            return cached;
+
+        // DB'den yükle
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var dbMessages = await db.ChatMessages
+            .Where(m => m.ProjectId == projectId)
+            .OrderBy(m => m.Sequence)
+            .ToListAsync(ct);
+
+        var history = dbMessages
+            .Select(m => new ChatMessage(m.Role, m.Content))
+            .ToList();
+
+        _cache[projectId] = history;
+        _logger.LogInformation("Chat history yüklendi: {ProjectId}, {Count} mesaj", projectId, history.Count);
+        return history;
+    }
+
+    /// <summary>Mesajı DB'ye kaydeder.</summary>
+    private async Task SaveMessageToDbAsync(Guid projectId, string role, string content, int sequence, CancellationToken ct)
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var entity = ChatMessageEntity.Create(projectId, role, content, sequence);
+            db.ChatMessages.Add(entity);
+            await db.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Chat mesajı DB'ye kaydedilemedi");
+        }
+    }
 }

@@ -2,6 +2,7 @@
 @page "/chat/new"
 @using CrewOps.Api.Services
 @using CrewOps.Domain.Aggregates
+@using Microsoft.JSInterop
 @using CrewOps.Domain.Ports
 @using CrewOps.Domain.StateMachine
 @inject PmAgentService PmAgent
@@ -9,6 +10,7 @@
 @inject IProjectStateMachine StateMachine
 @inject NavigationManager Nav
 @inject IHttpClientFactory HttpFactory
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <div class="chat-container">
@@ -180,7 +182,12 @@
             // PM yanıtında proje adı varsa kaydet
             await TryUpdateProjectName(response);
 
+            // URL güncelle (yeni proje oluşturulduysa)
+            if (_project is not null && Nav.Uri.Contains("/chat/new"))
+                Nav.NavigateTo($"/project/{_project.Id}/chat", replace: true);
+
             StateHasChanged();
+            await ScrollToBottom();
 
             // PM plan sundu mu? Quick action butonlarını göster
             _showQuickActions = PlanParser.ContainsPlan(response) || response.Contains("onaylıyor musunuz", StringComparison.OrdinalIgnoreCase);
@@ -255,32 +262,78 @@
 
     private async Task TryUpdateProjectName(string pmResponse)
     {
-        if (_project is null || _project.Name != "Yeni Proje") return;
+        if (_project is null) return;
 
-        string? projectName = null;
+        var needsUpdate = false;
 
-        // [PROJE_ADI: ...] formatını ara
-        var tagMatch = System.Text.RegularExpressions.Regex.Match(pmResponse, @"\[PROJE_ADI:\s*(.+?)\]");
-        if (tagMatch.Success)
+        // Proje adı güncelleme
+        if (_project.Name == "Yeni Proje")
         {
-            projectName = tagMatch.Groups[1].Value.Trim();
+            string? projectName = null;
+            var tagMatch = System.Text.RegularExpressions.Regex.Match(pmResponse, @"\[PROJE_ADI:\s*(.+?)\]");
+            if (tagMatch.Success) projectName = tagMatch.Groups[1].Value.Trim();
+
+            if (projectName is null)
+            {
+                var planMatch = System.Text.RegularExpressions.Regex.Match(pmResponse, @"Proje Plan[ıi]:\s*(.+?)(?:\n|$)");
+                if (planMatch.Success) projectName = planMatch.Groups[1].Value.Trim().TrimEnd('*').Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(projectName))
+            {
+                typeof(Project).GetProperty(nameof(Project.Name))!.SetValue(_project, projectName);
+                needsUpdate = true;
+            }
         }
 
-        // Tag yoksa "### Proje Planı: ..." başlığından çıkar
-        if (projectName is null)
+        // Domain/kategori otomatik atama (henüz atanmadıysa)
+        if (string.IsNullOrEmpty(_project.Domain))
         {
-            var planMatch = System.Text.RegularExpressions.Regex.Match(pmResponse, @"Proje Plan[ıi]:\s*(.+?)(?:\n|$)");
-            if (planMatch.Success)
-                projectName = planMatch.Groups[1].Value.Trim().TrimEnd('*').Trim();
+            var domain = DetectDomain(pmResponse, _project.Name);
+            if (domain is not null)
+            {
+                typeof(Project).GetProperty(nameof(Project.Domain))!.SetValue(_project, domain);
+                needsUpdate = true;
+            }
         }
 
-        if (!string.IsNullOrWhiteSpace(projectName))
-        {
-            // Reflection ile Name'i set et (private setter)
-            var nameProp = typeof(Project).GetProperty(nameof(Project.Name))!;
-            nameProp.SetValue(_project, projectName);
-            await ProjectRepo.UpdateAsync(_project);
-        }
+        if (needsUpdate) await ProjectRepo.UpdateAsync(_project);
+    }
+
+    private static string? DetectDomain(string text, string projectName)
+    {
+        var combined = (text + " " + projectName).ToLowerInvariant();
+        if (combined.Contains("diş") || combined.Contains("dis") || combined.Contains("klinik") ||
+            combined.Contains("doktor") || combined.Contains("sağlık") || combined.Contains("saglik") ||
+            combined.Contains("hastane") || combined.Contains("eczane"))
+            return "sağlık";
+        if (combined.Contains("güzellik") || combined.Contains("guzellik") || combined.Contains("kuaför") ||
+            combined.Contains("kuafor") || combined.Contains("salon") || combined.Contains("spa"))
+            return "güzellik";
+        if (combined.Contains("restoran") || combined.Contains("kafe") || combined.Contains("cafe") ||
+            combined.Contains("yemek") || combined.Contains("restaurant"))
+            return "yeme-içme";
+        if (combined.Contains("avukat") || combined.Contains("hukuk") || combined.Contains("noter"))
+            return "hukuk";
+        if (combined.Contains("oto") || combined.Contains("yıkama") || combined.Contains("servis") ||
+            combined.Contains("tamir") || combined.Contains("lastik"))
+            return "otomotiv";
+        if (combined.Contains("emlak") || combined.Contains("gayrimenkul") || combined.Contains("kiralık"))
+            return "emlak";
+        if (combined.Contains("eğitim") || combined.Contains("egitim") || combined.Contains("kurs") ||
+            combined.Contains("dershane") || combined.Contains("okul"))
+            return "eğitim";
+        if (combined.Contains("seo") || combined.Contains("pazarlama") || combined.Contains("marketing"))
+            return "pazarlama";
+        if (combined.Contains("yazılım") || combined.Contains("software") || combined.Contains("web"))
+            return "yazılım";
+        return null;
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try { await JS.InvokeVoidAsync("eval", "document.querySelector('.chat-messages')?.scrollTo({top:999999,behavior:'smooth'})"); }
+        catch { /* JS interop hazır değilse yut */ }
     }
 
     private Task QuickApprove() => QuickSend("Evet, onayla ve hemen başla.");
@@ -305,28 +358,107 @@
 
     private static string FormatMarkdown(string text)
     {
-        var html = text
-            .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
-            .Replace("\n\n", "</p><p>")
-            .Replace("\n", "<br/>");
+        // [PROJE_ADI: ...] tag'ını önceden temizle
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\[PROJE_ADI:\s*.+?\]", "").Trim();
 
-        // Bold
-        while (html.Contains("**"))
+        var lines = text.Split('\n');
+        var sb = new System.Text.StringBuilder();
+        var inList = false;
+        var inOrderedList = false;
+        var inCodeBlock = false;
+
+        foreach (var rawLine in lines)
         {
-            html = html.ReplaceFirst("**", "<strong>");
-            html = html.ReplaceFirst("**", "</strong>");
+            var line = rawLine.TrimEnd();
+
+            // Kod bloğu
+            if (line.TrimStart().StartsWith("```"))
+            {
+                if (inCodeBlock) { sb.Append("</code></pre>"); inCodeBlock = false; }
+                else { sb.Append("<pre class=\"code-block\"><code>"); inCodeBlock = true; }
+                continue;
+            }
+            if (inCodeBlock) { sb.Append(EscHtml(line)).Append('\n'); continue; }
+
+            // Boş satır
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                if (inList) { sb.Append("</ul>"); inList = false; }
+                if (inOrderedList) { sb.Append("</ol>"); inOrderedList = false; }
+                sb.Append("<br/>");
+                continue;
+            }
+
+            // Headers
+            if (line.StartsWith("### ")) { CloseList(sb, ref inList, ref inOrderedList); sb.Append("<h4>").Append(InlineFormat(line[4..])).Append("</h4>"); continue; }
+            if (line.StartsWith("## ")) { CloseList(sb, ref inList, ref inOrderedList); sb.Append("<h3>").Append(InlineFormat(line[3..])).Append("</h3>"); continue; }
+            if (line.StartsWith("# ")) { CloseList(sb, ref inList, ref inOrderedList); sb.Append("<h2>").Append(InlineFormat(line[2..])).Append("</h2>"); continue; }
+
+            // Unordered list: - veya *
+            var listMatch = System.Text.RegularExpressions.Regex.Match(line, @"^\s*[-*]\s+(.+)");
+            if (listMatch.Success)
+            {
+                if (inOrderedList) { sb.Append("</ol>"); inOrderedList = false; }
+                if (!inList) { sb.Append("<ul>"); inList = true; }
+                sb.Append("<li>").Append(InlineFormat(listMatch.Groups[1].Value)).Append("</li>");
+                continue;
+            }
+
+            // Ordered list: 1. 2. vb.
+            var olMatch = System.Text.RegularExpressions.Regex.Match(line, @"^\s*\d+\.\s+(.+)");
+            if (olMatch.Success)
+            {
+                if (inList) { sb.Append("</ul>"); inList = false; }
+                if (!inOrderedList) { sb.Append("<ol>"); inOrderedList = true; }
+                sb.Append("<li>").Append(InlineFormat(olMatch.Groups[1].Value)).Append("</li>");
+                continue;
+            }
+
+            // Tablo satırı
+            if (line.TrimStart().StartsWith('|') && line.Contains('|'))
+            {
+                CloseList(sb, ref inList, ref inOrderedList);
+                if (line.Contains("---")) continue; // Separator satırı atla
+                var cells = line.Split('|', StringSplitOptions.RemoveEmptyEntries);
+                sb.Append("<div class=\"table-row\">");
+                foreach (var cell in cells)
+                    sb.Append("<span class=\"table-cell\">").Append(InlineFormat(cell.Trim())).Append("</span>");
+                sb.Append("</div>");
+                continue;
+            }
+
+            // Normal paragraf
+            CloseList(sb, ref inList, ref inOrderedList);
+            sb.Append("<p>").Append(InlineFormat(line)).Append("</p>");
         }
 
-        // Headers
-        html = System.Text.RegularExpressions.Regex.Replace(html, @"^### (.+?)(<br/>|</p>)", "<h4>$1</h4>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        html = System.Text.RegularExpressions.Regex.Replace(html, @"^## (.+?)(<br/>|</p>)", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        CloseList(sb, ref inList, ref inOrderedList);
+        if (inCodeBlock) sb.Append("</code></pre>");
 
-        // Linkler: /project/xxx/yyy → tıklanabilir
+        var html = sb.ToString();
         html = MarkdownHelper.MakeLinksClickable(html);
-
-        // [PROJE_ADI: ...] tag'ını gizle
-        html = System.Text.RegularExpressions.Regex.Replace(html, @"\[PROJE_ADI:\s*.+?\]", "");
-
-        return $"<p>{html}</p>";
+        return html;
     }
+
+    private static void CloseList(System.Text.StringBuilder sb, ref bool inList, ref bool inOrderedList)
+    {
+        if (inList) { sb.Append("</ul>"); inList = false; }
+        if (inOrderedList) { sb.Append("</ol>"); inOrderedList = false; }
+    }
+
+    private static string InlineFormat(string text)
+    {
+        var html = EscHtml(text);
+        // Bold: **text**
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        // Italic: *text*
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", "<em>$1</em>");
+        // Inline code: `text`
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"`(.+?)`", "<code class=\"inline-code\">$1</code>");
+        // → arrow
+        html = html.Replace("→", "<span class=\"arrow\">→</span>");
+        return html;
+    }
+
+    private static string EscHtml(string s) => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 }

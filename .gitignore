@@ -40,6 +40,16 @@ wwwroot/demos/
 # Claude Code
 .claude/plans/
 .claude/worktrees/
+.claude/settings.local.json
+
+# Cursor
+.cursor/
+
+# V1 artifacts
+artifacts/
+
+# Temp files
+tmp_*
 
 # Temp
 *.tmp

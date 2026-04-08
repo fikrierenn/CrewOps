@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Derman Diş - Ağız ve Diş Sağlığı Polikliniği</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c1:#e11d48;--c2:#fb7185;--c3:#fda4af;
+  --font-display:'Space Grotesk',system-ui,sans-serif;
+  --font-body:'Plus Jakarta Sans',system-ui,sans-serif;
+  --bg:#fafafa;--white:#fff;--dark:#0f0f0f;--gray:#6b7280;--light:#f3f4f6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);color:var(--dark);background:var(--bg);line-height:1.7;overflow-x:hidden}
+img{max-width:100%;display:block}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 48px;display:flex;justify-content:space-between;align-items:center;background:rgba(250,250,250,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.04)}
+.nav-logo{font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--dark);text-decoration:none}
+.nav-cta{padding:10px 24px;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--white);font-size:.85rem;font-weight:600;text-decoration:none;border-radius:10px;transition:all .3s}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(225,29,72,.3)}
+
+/* HERO — Gradient mesh bg */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding-top:80px}
+.hero-mesh{position:absolute;inset:0;background:
+  radial-gradient(circle at 20% 30%,rgba(225,29,72,.2) 0%,transparent 40%),
+  radial-gradient(circle at 80% 70%,rgba(251,113,133,.2) 0%,transparent 40%),
+  radial-gradient(circle at 50% 50%,rgba(225,29,72,.05) 0%,transparent 60%);
+  animation:meshMove 12s ease-in-out infinite alternate}
+@keyframes meshMove{
+  0%{background-position:0% 50%}
+  100%{transform:scale(1.1) rotate(5deg)}
+}
+.hero-content{position:relative;z-index:1;text-align:center;max-width:800px;padding:0 24px}
+.hero-chips{display:flex;gap:12px;justify-content:center;margin-bottom:24px;flex-wrap:wrap;opacity:0;animation:popIn .5s ease .1s forwards}
+.hero-chip{background:linear-gradient(135deg,rgba(225,29,72,.1),rgba(251,113,133,.1));border:1px solid rgba(225,29,72,.15);padding:6px 16px;border-radius:20px;font-size:.75rem;font-weight:500;color:var(--c1)}
+.hero h1{font-family:var(--font-display);font-size:clamp(3rem,7vw,5rem);font-weight:700;line-height:1.1;margin-bottom:20px;
+  background:linear-gradient(135deg,var(--c1),var(--c2),var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  opacity:0;animation:popIn .5s ease .2s forwards}
+.hero-sub{font-size:clamp(1rem,2vw,1.2rem);color:var(--gray);margin-bottom:20px;opacity:0;animation:popIn .5s ease .3s forwards}
+.hero-rating{display:inline-flex;align-items:center;gap:10px;font-size:.95rem;background:var(--white);padding:12px 24px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.06);opacity:0;animation:popIn .5s ease .4s forwards}
+.hero-rating .stars{color:#f59e0b;letter-spacing:2px}
+.hero-actions{margin-top:32px;display:flex;gap:16px;justify-content:center;opacity:0;animation:popIn .5s ease .5s forwards}
+.btn-grad{display:inline-block;padding:16px 40px;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--white);font-weight:600;font-size:.9rem;text-decoration:none;border-radius:12px;transition:all .3s;position:relative;overflow:hidden}
+.btn-grad:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(225,29,72,.3)}
+/* Pulsing border */
+.btn-grad::before,.btn-grad::after{content:'';position:absolute;inset:-4px;border-radius:16px;border:2px solid var(--c1);opacity:0;animation:pBorder 2.5s ease-out infinite}
+.btn-grad::after{animation-delay:1.25s}
+@keyframes pBorder{0%{opacity:.3;transform:scale(1)}100%{opacity:0;transform:scale(1.15)}}
+.btn-outline{display:inline-block;padding:16px 40px;border:1.5px solid var(--c1);color:var(--c1);font-weight:600;font-size:.9rem;text-decoration:none;border-radius:12px;transition:all .3s}
+.btn-outline:hover{background:rgba(225,29,72,.05)}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* Scroll reveal */
+.sr{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.sr.v{opacity:1;transform:translateY(0)}
+.sr-d1{transition-delay:.1s}.sr-d2{transition-delay:.2s}.sr-d3{transition-delay:.3s}
+
+/* SECTION */
+.section{padding:100px 24px}
+.section-label{display:inline-block;background:linear-gradient(135deg,rgba(225,29,72,.1),rgba(251,113,133,.1));color:var(--c1);padding:6px 16px;border-radius:8px;font-size:.75rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.section-title{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:12px}
+.section-sub{color:var(--gray);font-size:1rem;max-width:480px;margin-bottom:48px;font-weight:300}
+.section-center{text-align:center}.section-center .section-sub{margin-left:auto;margin-right:auto}
+
+/* ABOUT — Side by side with gradient accent */
+.about{background:var(--white)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;max-width:1100px;margin:0 auto;align-items:center}
+.about-img{border-radius:20px;overflow:hidden;position:relative}
+.about-img img{width:100%;height:420px;object-fit:cover}
+.about-img::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(225,29,72,.15),transparent 50%);pointer-events:none;z-index:1}
+.about-text h3{font-family:var(--font-display);font-size:1.6rem;margin-bottom:16px}
+.about-text p{color:var(--gray);font-weight:300;margin-bottom:16px}
+.about-stats{display:flex;gap:24px;margin-top:24px}
+.about-stat{background:var(--light);border-radius:12px;padding:16px 20px;text-align:center;flex:1}
+.about-stat-num{font-family:var(--font-display);font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.about-stat-label{font-size:.7rem;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* SERVICES — Full-width alternating bands */
+.srv-list{max-width:1100px;margin:0 auto}
+.srv-item{display:grid;grid-template-columns:1fr 1fr;gap:48px;padding:48px 0;border-bottom:1px solid rgba(0,0,0,.06);align-items:center}
+.srv-item:nth-child(even) .srv-item-text{order:2}
+.srv-item:nth-child(even) .srv-item-visual{order:1}
+.srv-item-num{font-family:var(--font-display);font-size:4rem;font-weight:700;background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:.3;margin-bottom:8px}
+.srv-item h3{font-family:var(--font-display);font-size:1.4rem;margin-bottom:8px}
+.srv-item p{color:var(--gray);font-weight:300;font-size:.95rem}
+.srv-item-visual{height:200px;border-radius:16px;background:linear-gradient(135deg,rgba(225,29,72,.08),rgba(251,113,133,.08));display:flex;align-items:center;justify-content:center;font-size:3rem}
+
+/* REVIEWS */
+.reviews{background:var(--white)}
+.rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto}
+.rev-card{background:var(--light);border-radius:16px;padding:28px;transition:all .3s;border:1px solid transparent}
+.rev-card:hover{border-color:var(--c1);transform:translateY(-2px)}
+.rev-stars{background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:1.1rem;letter-spacing:2px;margin-bottom:12px}
+.rev-text{color:var(--gray);font-style:italic;font-size:.95rem;line-height:1.7;margin-bottom:14px;font-weight:300}
+.rev-author{font-weight:600;font-size:.85rem}
+
+/* MAP */
+.map-section{background:var(--dark);color:var(--white)}
+.map-content{display:grid;grid-template-columns:1fr 1fr;min-height:400px;max-width:1200px;margin:0 auto}
+.map-info{padding:64px 48px;display:flex;flex-direction:column;justify-content:center}
+.map-info h2{font-family:var(--font-display);font-size:2rem;margin-bottom:24px}
+.map-detail{margin-bottom:12px;opacity:.7;font-size:1rem}
+.map-detail a{color:var(--c2)}
+.map-frame iframe{width:100%;height:100%;border:0;min-height:400px}
+
+/* CTA — Gradient bg */
+.cta-section{text-align:center;padding:100px 24px;background:linear-gradient(135deg,var(--c1),var(--c2));color:var(--white);position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(255,255,255,.1),transparent 50%);pointer-events:none}
+.cta-section h2{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);margin-bottom:12px;position:relative}
+.cta-section p{opacity:.85;margin-bottom:32px;font-weight:300;position:relative}
+.cta-phone{display:block;font-family:var(--font-display);font-size:2.2rem;font-weight:700;color:var(--white);text-decoration:none;margin-bottom:28px;position:relative}
+.cta-btn-white{display:inline-block;padding:16px 48px;background:var(--white);color:var(--dark);font-weight:700;font-size:.9rem;text-decoration:none;border-radius:12px;transition:all .3s;position:relative}
+.cta-btn-white:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.2)}
+
+.footer{text-align:center;padding:32px;font-size:.8rem;color:var(--gray)}
+.footer a{color:var(--c1);text-decoration:none}
+
+@media(max-width:768px){
+  .nav{padding:14px 20px}
+  .about-grid{grid-template-columns:1fr}
+  .about-img img{height:300px}
+  .srv-item{grid-template-columns:1fr}
+  .srv-item:nth-child(even) .srv-item-text{order:1}
+  .srv-item-visual{height:120px}
+  .rev-grid{grid-template-columns:1fr}
+  .map-content{grid-template-columns:1fr}
+  .map-info{padding:40px 24px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#" class="nav-logo">Derman Diş - Ağız ve Diş ...</a>
+  <a href="#iletisim" class="nav-cta">Randevu Al</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-mesh"></div>
+  <div class="hero-content">
+    <div class="hero-chips">
+      <span class="hero-chip">⭐ 5,0 Puan</span>
+      <span class="hero-chip">116+ Yorum</span>
+      <span class="hero-chip">Profesyonel Ekip</span>
+    </div>
+    <h1>Derman Diş - Ağız ve Diş Sağlığı Polikliniği</h1>
+    <p class="hero-sub">Sağlıklı G&#252;l&#252;şler, G&#252;venle Bizde.</p>
+    <div class="hero-rating"><span class="stars">★★★★★</span><span>Google'da 116+ değerlendirme</span></div>
+    <div class="hero-actions">
+      <a href="#iletisim" class="btn-grad">Randevu Al</a>
+      <a href="#hizmetler" class="btn-outline">Hizmetler</a>
+    </div>
+  </div>
+</section>
+
+<section class="section about" id="hakkinda">
+  <div class="about-grid">
+    <div class="about-img sr">
+      <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=600&fit=crop" alt="Derman Diş - Ağız ve Diş Sağlığı Polikliniği" loading="lazy">
+    </div>
+    <div class="about-text sr sr-d1">
+      <div class="section-label">Hakkımızda</div>
+      <h3>Profesyonel G&#252;zellik</h3>
+      <p>Uzman kadromuz ile en kaliteli g&#252;zellik hizmetlerini sunuyoruz.</p>
+      <div class="about-stats">
+        <div class="about-stat"><div class="about-stat-num">5,0</div><div class="about-stat-label">Puan</div></div>
+        <div class="about-stat"><div class="about-stat-num">116</div><div class="about-stat-label">Yorum</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-center" id="hizmetler">
+  <div class="section-label">Hizmetlerimiz</div>
+  <div class="section-title">Neler Sunuyoruz</div>
+  <div class="section-sub">Her detayda kalite.</div>
+  <div class="srv-list">
+    <div class="srv-item sr"><div class="srv-item-text"><div class="srv-item-num">01</div><h3>Cilt Bakımı</h3><p>Uzman ekibimizle profesyonel hizmet.</p></div><div class="srv-item-visual">✨</div></div>
+    <div class="srv-item sr"><div class="srv-item-text"><div class="srv-item-num">02</div><h3>Sa&#231; Bakımı</h3><p>Uzman ekibimizle profesyonel hizmet.</p></div><div class="srv-item-visual">💎</div></div>
+    <div class="srv-item sr"><div class="srv-item-text"><div class="srv-item-num">03</div><h3>Manik&#252;r &amp; Pedik&#252;r</h3><p>Uzman ekibimizle profesyonel hizmet.</p></div><div class="srv-item-visual">🌸</div></div>
+  </div>
+</section>
+
+<section class="section reviews section-center" id="yorumlar">
+  <div class="section-label">Yorumlar</div>
+  <div class="section-title">Müşterilerimiz Ne Diyor</div>
+  <div class="section-sub">116+ Google değerlendirmesi</div>
+  <div class="rev-grid">
+    <div class="rev-card sr"><div class="rev-stars">★★★★★</div><p class="rev-text">"Harika bir deneyimdi!"</p><div class="rev-author">— Mutlu Müşteri</div></div>
+    <div class="rev-card sr sr-d1"><div class="rev-stars">★★★★★</div><p class="rev-text">"&#199;ok profesyonel kadro."</p><div class="rev-author">— Mutlu Müşteri</div></div>
+    <div class="rev-card sr sr-d2"><div class="rev-stars">★★★★★</div><p class="rev-text">"Kesinlikle tavsiye ederim."</p><div class="rev-author">— Mutlu Müşteri</div></div>
+  </div>
+</section>
+
+<section class="map-section">
+  <div class="map-content">
+    <div class="map-info sr">
+      <h2>Bize Ulaşın</h2>
+      <p class="map-detail">📍 Erikli, Ankara Yolu Cd No:478B D:38, 16140 Yıldırım/Bursa, T&#252;rkiye</p>
+      <p class="map-detail">📞 <a href="tel:0501 333 70 72">0501 333 70 72</a></p>
+      <p class="map-detail">⭐ Google'da 5,0/5</p>
+    </div>
+    <div class="map-frame"><iframe src="https://www.google.com/maps?q=Derman+Di%C5%9F+-+A%C4%9F%C4%B1z+ve+Di%C5%9F+Sa%C4%9Fl%C4%B1%C4%9F%C4%B1+Poliklini%C4%9Fi+Erikli%2C+Ankara+Yolu+Cd+No%3A478B+D%3A38%2C+16140+Y%C4%B1ld%C4%B1r%C4%B1m%2FBursa%2C+T%C3%BCrkiye&output=embed" allowfullscreen loading="lazy"></iframe></div>
+  </div>
+</section>
+
+<section class="cta-section" id="iletisim">
+  <h2>Güzelliğinizi Keşfedin</h2>
+  <p>Hemen randevu alın.</p>
+  <a href="tel:0501 333 70 72" class="cta-phone">0501 333 70 72</a>
+  <a href="tel:0501 333 70 72" class="cta-btn-white">Hemen Arayın</a>
+</section>
+
+<div class="footer"><p><strong>Derman Diş - Ağız ve Diş Sağlığı Polikliniği</strong> için hazırlanmıştır · <a href="#">CrewOps AI</a></p></div>
+
+<script>
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');obs.unobserve(e.target)}})},{threshold:.1});
+document.querySelectorAll('.sr').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

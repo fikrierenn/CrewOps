@@ -397,8 +397,28 @@ Her oturumdaki ilerleme kronolojik olarak kaydedilir. Session düşse bile burad
 | `src/CrewOps.Api/wwwroot/demo-preview.html` | Template preview sayfası |
 | `src/CrewOps.Api/appsettings.json` | Groq config eklendi |
 
-### SEO Modülü Planı (sonraki oturum)
-- WebsiteProber: Gerçek HTTP kontrolü (HEAD request, SSL, redirect)
-- SeoAnalyzer: Meta tag, mobile, h1, img alt, robots.txt, sitemap
-- Lead'e SeoScore (0-100) + SeoReport (JSON) alanları
-- Akış: Lead Bulma → WebsiteProber → LeadVerifier → SeoAnalyzer → Demo Site → Mesaj
+### SEO Modülü TAMAMLANDI
+- **WebsiteProber.cs** — Gerçek HTTP kontrolü (HEAD→GET fallback, SSL, redirect, platform filtre, işletme adından URL tahmin)
+- **SeoAnalyzer.cs** — Meta tag, viewport, OG, canonical, favicon, H1, img alt, HTML boyut, yanıt süresi, skor 0-100
+- **Lead entity** genişletildi: SeoScore (int?), SeoReport (string? JSON), SetSeoResult(), SetWebsiteInfo()
+- **LeadVerifier** yeniden yazıldı: 3 katmanlı doğrulama (Prober → Gemini → SEO analiz)
+  - İyi siteli lead'ler artık silinmiyor — SEO skoru düşükse "kötü" olarak yeniden sınıflandırılıyor
+  - SEO hizmeti satışı için fırsat yaratıyor
+- EF Core migration: `AddLeadSeoFields`
+- DI kaydı: `AddHttpClient<WebsiteProber>()`, `AddHttpClient<SeoAnalyzer>()`
+
+### README Güncellendi
+- V1 döneminden kalan README tamamen yeniden yazıldı
+- V2 .NET 10 yapısı, kurulum, API endpoint listesi, template gallery
+
+### Git — 3 Commit Push Edildi
+1. `8822a2f` — İlk commit (899 dosya, V1+V2 tümü)
+2. `d1f39cd` — SEO modülü + Chat/Sidebar iyileştirmeleri
+3. `4c4c010` — README güncelleme
+
+### Sıradaki İşler (Sonraki Oturum)
+1. **Skill-driven orkestrasyon**: agents-main/ skill'lerini gerçek araç olarak çalıştır (seo-audit skill → SeoAnalyzer tetikle)
+2. **Proje kategorisi**: PM'den otomatik sektör/kategori atama
+3. **Arama iyileştirme**: Google Places API, daha fazla ilçe, paralel arama
+4. **Chat ekranı**: Markdown render iyileştirme, auto-scroll, mesaj düzenleme
+5. **Lead detay sayfası**: SEO raporu görselleştirme, demo site preview, pazarlama mesajı
